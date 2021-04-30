@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 	"unicode/utf8"
 
 	"github.com/gin-gonic/contrib/sessions"
@@ -223,6 +224,24 @@ func main() {
 		db.Exec("DELETE FROM products WHERE id > 10000")
 		db.Exec("DELETE FROM comments WHERE id > 200000")
 		db.Exec("DELETE FROM histories WHERE id > 500000")
+
+		{
+			productCache = sync.Map{}
+			rows, err := db.Query("SELECT * FROM products")
+			if err != nil {
+				c.String(http.StatusInternalServerError, err.Error())
+				return
+			}
+			for rows.Next() {
+				var p Product
+				err := rows.Scan(&p.ID, &p.Name, &p.Description, &p.ImagePath, &p.Price, &p.CreatedAt)
+				if err != nil {
+					c.String(http.StatusInternalServerError, err.Error())
+					return
+				}
+				productCache.Store(p.ID, p)
+			}
+		}
 
 		c.String(http.StatusOK, "Finish")
 	})

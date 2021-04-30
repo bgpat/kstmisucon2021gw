@@ -56,12 +56,7 @@ func currentUser(session sessions.Session) User {
 // BuyingHistory : products which user had bought
 func (u *User) BuyingHistory() (products []Product) {
 	rows, err := db.Query(
-		"SELECT p.id, p.name, p.description, p.image_path, p.price, h.created_at "+
-			"FROM histories as h "+
-			"LEFT OUTER JOIN products as p "+
-			"ON h.product_id = p.id "+
-			"WHERE h.user_id = ? "+
-			"ORDER BY h.id DESC", u.ID)
+		"SELECT product_id, created_at FROM histories WHERE h.user_id = ? ORDER BY h.id DESC", u.ID)
 	if err != nil {
 		return nil
 	}
@@ -70,9 +65,11 @@ func (u *User) BuyingHistory() (products []Product) {
 	for rows.Next() {
 		p := Product{}
 		var cAt string
+		var pid int
 		fmt := "2006-01-02 15:04:05"
-		err = rows.Scan(&p.ID, &p.Name, &p.Description, &p.ImagePath, &p.Price, &cAt)
+		err = rows.Scan(&pid, &cAt)
 		tmp, _ := time.Parse(fmt, cAt)
+		p = getProduct(pid)
 		p.CreatedAt = (tmp.Add(9 * time.Hour)).Format(fmt)
 		if err != nil {
 			panic(err.Error())
