@@ -1,10 +1,13 @@
 package main
 
 import (
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/contrib/sessions"
 )
+
+var historyCache sync.Map
 
 // User model
 type User struct {
@@ -13,6 +16,11 @@ type User struct {
 	Email     string
 	Password  string
 	LastLogin string
+}
+
+type userHistory struct {
+	ProductID int
+	CreatedAt time.Time
 }
 
 func authenticate(email string, password string) (User, bool) {
@@ -55,25 +63,15 @@ func currentUser(session sessions.Session) User {
 
 // BuyingHistory : products which user had bought
 func (u *User) BuyingHistory() (products []Product) {
-	rows, err := db.Query(
-		"SELECT product_id, created_at FROM histories WHERE user_id = ? ORDER BY id DESC", u.ID)
-	if err != nil {
-		return nil
+	var uh []userHistory
+	if v, ok := historyCache.Load(u.ID); ok {
+		uh = v.([]userHistory)
 	}
-
-	defer rows.Close()
-	for rows.Next() {
+	for _, h := range uh {
 		p := Product{}
-		var cAt string
 		var pid int
-		fmt := "2006-01-02 15:04:05"
-		err = rows.Scan(&pid, &cAt)
-		tmp, _ := time.Parse(fmt, cAt)
 		p = getProduct(pid)
-		p.CreatedAt = (tmp.Add(9 * time.Hour)).Format(fmt)
-		if err != nil {
-			panic(err.Error())
-		}
+		p.CreatedAt = h.CreatedAt.Format("2006-01-02 15:04:05")
 		products = append(products, p)
 	}
 
@@ -81,10 +79,21 @@ func (u *User) BuyingHistory() (products []Product) {
 }
 
 // BuyProduct : buy product
-func (u *User) BuyProduct(pid string) {
+func (u *User) BuyProduct(pid int) {
+	now := time.Now()
+
+	if v, ok := historyCache.Load(u.ID); ok {
+		h := v.([]userHistory)
+		h = append(h, userHistory{
+			ProductID: pid,
+			CreatedAt: now,
+		})
+		historyCache.Store(u.ID, h)
+	}
+
 	db.Exec(
 		"INSERT INTO histories (product_id, user_id, created_at) VALUES (?, ?, ?)",
-		pid, u.ID, time.Now())
+		pid, u.ID, now)
 }
 
 // CreateComment : create comment to the product

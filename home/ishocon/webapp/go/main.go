@@ -188,7 +188,11 @@ func main() {
 		} else {
 			// buy product
 			cUser := currentUser(sessions.Default(c))
-			cUser.BuyProduct(c.Param("productId"))
+			pid, err := strconv.Atoi(c.Param("productId"))
+			if err != nil {
+				panic(err.Error())
+			}
+			cUser.BuyProduct(pid)
 
 			// redirect to user page
 			tmpl, _ := template.ParseFiles("templates/mypage.tmpl")
@@ -240,6 +244,30 @@ func main() {
 					return
 				}
 				productCache.Store(p.ID, p)
+			}
+		}
+
+		{
+			historyCache = sync.Map{}
+			rows, err := db.Query("SELECT user_id, product_id, created_at FROM histories")
+			if err != nil {
+				c.String(http.StatusInternalServerError, err.Error())
+				return
+			}
+			for rows.Next() {
+				var uid int
+				var h userHistory
+				err := rows.Scan(&uid, &h.ProductID, &h.CreatedAt)
+				if err != nil {
+					c.String(http.StatusInternalServerError, err.Error())
+					return
+				}
+				var uh []userHistory
+				if v, ok := historyCache.Load(uid); ok {
+					uh = v.([]userHistory)
+				}
+				uh = append(uh, h)
+				historyCache.Store(uid, uh)
 			}
 		}
 
