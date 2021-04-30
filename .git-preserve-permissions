@@ -11,6 +11,9 @@
 0755:0:0:etc/prometheus
 0755:0:0:etc
 0644:0:0:etc/prometheus/prometheus.yml
+0755:0:0:etc/systemd/system
+0755:0:0:etc/systemd
+0644:0:0:etc/systemd/system/webapp.service
 0755:0:0:files
 0644:0:0:files/gitignore
 0755:0:0:files/gitignore.sh

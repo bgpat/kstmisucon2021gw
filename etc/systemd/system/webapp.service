@@ -1,0 +1,7 @@
+[Service]
+EnvironmentFile=/home/ishocon/.bashrc
+WorkingDirectory=/home/ishocon/webapp/go
+ExecStart=/home/ishocon/webapp/go/webapp
+Restart=always
+User=ishocon
+Group=ishocon
