@@ -86,10 +86,10 @@ func (u *User) BuyProduct(pid int) {
 
 	if v, ok := historyCache.Load(u.ID); ok {
 		h := v.([]userHistory)
-		h = append(h, userHistory{
+		h = append([]userHistory{{
 			ProductID: pid,
 			CreatedAt: now.Format("2006-01-02 15:04:05"),
-		})
+		}}, h...)
 		historyCache.Store(u.ID, h)
 	}
 
