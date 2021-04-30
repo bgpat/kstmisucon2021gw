@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"strconv"
 	"sync"
 	"time"
 
@@ -101,10 +102,24 @@ func (u *User) BuyProduct(pid int) {
 }
 
 // CreateComment : create comment to the product
-func (u *User) CreateComment(pid string, content string) {
+func (u *User) CreateComment(pidStr string, content string) {
+	now := time.Now()
+	pid, _ := strconv.Atoi(pidStr)
+
+	if v, ok := commentCache.Load(pid); ok {
+		cs := v.([]Comment)
+		cs = append([]Comment{{
+			ProductID: pid,
+			UserID:    u.ID,
+			Content:   content,
+			CreatedAt: now.Format("2006-01-02 15:04:05"),
+		}}, cs...)
+		commentCache.Store(pid, cs)
+	}
+
 	db.Exec(
 		"INSERT INTO comments (product_id, user_id, content, created_at) VALUES (?, ?, ?, ?)",
-		pid, u.ID, content, time.Now())
+		pidStr, u.ID, content, now)
 }
 
 func (u *User) UpdateLastLogin() {

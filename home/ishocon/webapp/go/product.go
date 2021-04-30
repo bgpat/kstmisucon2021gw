@@ -52,7 +52,7 @@ func getProduct(pid int) Product {
 func getProductsWithCommentsAt(page int) []ProductWithComments {
 	// select 50 products with offset page*50
 	products := []ProductWithComments{}
-	rows, err := db.Query("SELECT p.id, COUNT(c.id) FROM products p JOIN comments c ON c.product_id = p.id GROUP BY p.id ORDER BY p.id DESC LIMIT 50 OFFSET ?", page*50)
+	rows, err := db.Query("SELECT id FROM products ORDER BY id DESC LIMIT 50 OFFSET ?", page*50)
 	if err != nil {
 		return nil
 	}
@@ -60,10 +60,14 @@ func getProductsWithCommentsAt(page int) []ProductWithComments {
 	defer rows.Close()
 	for rows.Next() {
 		p := ProductWithComments{}
-		err = rows.Scan(&p.ID, &p.CommentCount)
+		err = rows.Scan(&p.ID)
 
 		product := getProduct(p.ID)
 		p.Name, p.Description, p.ImagePath, p.Price, p.CreatedAt = product.Name, product.Description, product.ImagePath, product.Price, product.CreatedAt
+
+		if v, ok := commentCache.Load(p.ID); ok {
+			p.CommentCount = len(v.([]Comment))
+		}
 
 		if p.CommentCount > 0 {
 			// select 5 comments and its writer for the product

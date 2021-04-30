@@ -1,5 +1,9 @@
 package main
 
+import "sync"
+
+var commentCache sync.Map
+
 // Comment Model
 type Comment struct {
 	ID        int

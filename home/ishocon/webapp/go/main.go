@@ -271,6 +271,30 @@ func main() {
 			}
 		}
 
+		{
+			_c := c
+			commentCache = sync.Map{}
+			rows, err := db.Query("SELECT * FROM comments ORDER BY created_at DESC")
+			if err != nil {
+				c.String(http.StatusInternalServerError, err.Error())
+				return
+			}
+			for rows.Next() {
+				var c Comment
+				err := rows.Scan(&c.ID, &c.ProductID, &c.UserID, &c.Content, &c.CreatedAt)
+				if err != nil {
+					_c.String(http.StatusInternalServerError, err.Error())
+					return
+				}
+				var comments []Comment
+				if v, ok := commentCache.Load(c.ProductID); ok {
+					comments = v.([]Comment)
+				}
+				comments = append(comments, c)
+				commentCache.Store(c.ProductID, comments)
+			}
+		}
+
 		c.String(http.StatusOK, "Finish")
 	})
 
