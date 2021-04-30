@@ -20,7 +20,7 @@ type User struct {
 
 type userHistory struct {
 	ProductID int
-	CreatedAt time.Time
+	CreatedAt string
 }
 
 func authenticate(email string, password string) (User, bool) {
@@ -71,7 +71,10 @@ func (u *User) BuyingHistory() (products []Product) {
 		p := Product{}
 		var pid int
 		p = getProduct(pid)
-		p.CreatedAt = h.CreatedAt.Format("2006-01-02 15:04:05")
+		fmt := "2006-01-02 15:04:05"
+		tmp, _ := time.Parse(fmt, h.CreatedAt)
+		p.CreatedAt = (tmp.Add(9 * time.Hour)).Format(fmt)
+
 		products = append(products, p)
 	}
 
@@ -86,7 +89,7 @@ func (u *User) BuyProduct(pid int) {
 		h := v.([]userHistory)
 		h = append(h, userHistory{
 			ProductID: pid,
-			CreatedAt: now,
+			CreatedAt: now.Format("2006-01-02 15:04:05"),
 		})
 		historyCache.Store(u.ID, h)
 	}
