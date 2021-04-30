@@ -10,6 +10,7 @@
 0644:0:0:README.md
 0755:0:0:etc/prometheus
 0755:0:0:etc
+0644:0:0:etc/prometheus/hosts.json
 0644:0:0:etc/prometheus/prometheus.yml
 0755:0:0:etc/systemd/system
 0755:0:0:etc/systemd
@@ -27,3 +28,11 @@
 0755:0:0:files/pubkey
 0644:0:0:files/pubkey/ip-172-16-10-251
 0644:0:0:files/vimrc
+0775:1001:1001:home/ishocon/.init
+0755:1001:1001:home/ishocon
+0755:0:0:home
+0664:1001:1001:home/ishocon/.init/init.sql
+0664:1001:1001:home/ishocon/.init/insert.rb
+0700:0:0:root/.ssh
+0700:0:0:root
+0644:0:0:root/.ssh/authorized_keys
