@@ -1,7 +1,7 @@
 HOSTNAME := $(shell hostname)
 
 .PHONY: all
-all: git ssh commit /home/isucon/.bashrc /files/hosts/$(HOSTNAME)
+all: git ssh commit /home/ishocon/.bashrc /files/hosts/$(HOSTNAME)
 	@echo "\n\n\n\n"
 	@echo "Open \e[4mhttps://github.com/$$(\
 		git config --get remote.origin.url | sed -r 's/^.*?:(.*)\.git$$/\1/' \
@@ -15,7 +15,7 @@ commit:
 	git commit -m "Configure $(HOSTNAME)"
 
 .PHONY: git
-git: /.gitignore /usr/local/bin/git-preserve-permissions /root/.vimrc /home/isucon/.vimrc
+git: /.gitignore /usr/local/bin/git-preserve-permissions /root/.vimrc /home/ishocon/.vimrc
 	git config --get remote.origin.url \
 	| grep '^https://' \
 	&& git config --get remote.origin.url \
@@ -50,7 +50,7 @@ sshd: /etc/sudoers /etc/ssh/sshd_config
 
 .PHONY: clean
 clean:
-	rm -rf /root/.ssh /.gitignore /root/.vimrc /home/isucon/.vimrc /root/.ssh/id_rsa /root/.gitconfig
+	rm -rf /root/.ssh /.gitignore /root/.vimrc /home/ishocon/.vimrc /root/.ssh/id_rsa /root/.gitconfig
 	test -e /etc/sudoers.bak && cp -fp /etc/sudoers.bak /etc/sudoers
 	test -e /etc/ssh/sshd_config.bak && cp -fp /etc/ssh/sshd_config.bak /etc/ssh/sshd_config
 
@@ -69,7 +69,7 @@ clean:
 /root/.vimrc: files/vimrc
 	cp -f $< $@
 
-/home/isucon/.vimrc: files/vimrc
+/home/ishocon/.vimrc: files/vimrc
 	cp -f $< $@
 
 /root/.ssh/id_rsa: /root/.ssh
@@ -100,15 +100,15 @@ ssh_host_key:
 /git-preserve-permissions:
 	git clone --depth=1 https://github.com/dr4Ke/git-preserve-permissions.git
 
-/home/isucon:
+/home/ishocon:
 	mkdir -p $@
 
-/home/isucon/.bashrc.backup: /home/isucon
-	cp -f /home/isucon/.bashrc $@
+/home/ishocon/.bashrc.backup: /home/ishocon
+	cp -f /home/ishocon/.bashrc $@
 	/files/gitignore.sh $@
 
-/home/isucon/.bashrc: /home/isucon/.bashrc.backup
-ifeq ($(shell git status --ignored --short /home/isucon/.bashrc),)
+/home/ishocon/.bashrc: /home/ishocon/.bashrc.backup
+ifeq ($(shell git status --ignored --short /home/ishocon/.bashrc),)
 	@echo skip $@
 else
 	/files/gitignore.sh $@
