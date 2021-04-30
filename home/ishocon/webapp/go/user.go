@@ -56,7 +56,7 @@ func currentUser(session sessions.Session) User {
 // BuyingHistory : products which user had bought
 func (u *User) BuyingHistory() (products []Product) {
 	rows, err := db.Query(
-		"SELECT product_id, created_at FROM histories WHERE h.user_id = ? ORDER BY h.id DESC", u.ID)
+		"SELECT product_id, created_at FROM histories WHERE user_id = ? ORDER BY id DESC", u.ID)
 	if err != nil {
 		return nil
 	}
