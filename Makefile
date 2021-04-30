@@ -176,4 +176,4 @@ slow.log: /tmp/mysql-slow.sql
 .PHONY: rotate
 rotate:
 	rm /tmp/mysql-slow.sql
-	systemctl restart mysql
+	systemctl restart mysql webapp
