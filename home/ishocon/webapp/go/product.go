@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"sync"
 )
 
@@ -95,16 +94,12 @@ func getProductsWithCommentsAt(page int) []ProductWithComments {
 }
 
 func (p *Product) isBought(uid int) bool {
-	var count int
-	log.Print(uid)
-	log.Print(p.ID)
-	err := db.QueryRow(
-		"SELECT count(*) as count FROM histories WHERE product_id = ? AND user_id = ?",
-		p.ID, uid,
-	).Scan(&count)
-	if err != nil {
-		panic(err.Error())
+	if v, ok := historyCache.Load(uid); ok {
+		for _, h := range v.([]userHistory) {
+			if h.ProductID == p.ID {
+				return true
+			}
+		}
 	}
-
-	return count > 0
+	return false
 }
