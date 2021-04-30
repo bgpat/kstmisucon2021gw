@@ -170,8 +170,8 @@ grafana-server: /usr/local/bin/grafana-server
 	cp -f /files/grafana/datasources.yml $@/conf/provisioning/datasources/datasources.yml
 	cp -f /files/grafana/dashboards.yml $@/conf/provisioning/dashboards/dashboards.yml
 
-slow.log:
-	mysqldumpslow -s t /tmp/mysql-slow.sql > $@
+slow.log: /tmp/mysql-slow.sql
+	mysqldumpslow -s t $< > $@
 
 .PHONY: rotate
 rotate:

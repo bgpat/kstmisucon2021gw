@@ -36,8 +36,10 @@
 0775:1001:1001:home/ishocon/webapp/go
 0775:1001:1001:home/ishocon/webapp
 0664:1001:1001:home/ishocon/webapp/go/comment.go
+0644:1001:1001:home/ishocon/webapp/go/go.mod
+0644:1001:1001:home/ishocon/webapp/go/go.sum
 0664:1001:1001:home/ishocon/webapp/go/main.go
-0664:1001:1001:home/ishocon/webapp/go/product.go
+0644:1001:1001:home/ishocon/webapp/go/product.go
 0775:1001:1001:home/ishocon/webapp/go/public/css
 0775:1001:1001:home/ishocon/webapp/go/public
 0664:1001:1001:home/ishocon/webapp/go/public/css/bootstrap.min.css
