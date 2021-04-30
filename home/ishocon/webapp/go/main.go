@@ -249,7 +249,7 @@ func main() {
 
 		{
 			historyCache = sync.Map{}
-			rows, err := db.Query("SELECT user_id, product_id, created_at FROM histories")
+			rows, err := db.Query("SELECT user_id, product_id, created_at FROM histories ORDER BY id DESC")
 			if err != nil {
 				c.String(http.StatusInternalServerError, err.Error())
 				return
