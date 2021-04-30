@@ -230,6 +230,24 @@ func main() {
 		db.Exec("DELETE FROM histories WHERE id > 500000")
 
 		{
+			userCache = sync.Map{}
+			rows, err := db.Query("SELECT * FROM user")
+			if err != nil {
+				c.String(http.StatusInternalServerError, err.Error())
+				return
+			}
+			for rows.Next() {
+				var u User
+				err := rows.Scan(&u.ID, &u.Name, &u.Email)
+				if err != nil {
+					c.String(http.StatusInternalServerError, err.Error())
+					return
+				}
+				userCache.Store(u.ID, u)
+			}
+		}
+
+		{
 			productCache = sync.Map{}
 			rows, err := db.Query("SELECT * FROM products")
 			if err != nil {

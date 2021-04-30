@@ -9,7 +9,10 @@ import (
 	"github.com/gin-gonic/contrib/sessions"
 )
 
-var historyCache sync.Map
+var (
+	userCache    sync.Map
+	historyCache sync.Map
+)
 
 // User model
 type User struct {

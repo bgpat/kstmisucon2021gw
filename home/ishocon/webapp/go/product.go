@@ -65,27 +65,25 @@ func getProductsWithCommentsAt(page int) []ProductWithComments {
 		product := getProduct(p.ID)
 		p.Name, p.Description, p.ImagePath, p.Price, p.CreatedAt = product.Name, product.Description, product.ImagePath, product.Price, product.CreatedAt
 
+		var comments []Comment
 		if v, ok := commentCache.Load(p.ID); ok {
-			p.CommentCount = len(v.([]Comment))
+			comments = v.([]Comment)
+			p.CommentCount = len(comments)
 		}
 
 		if p.CommentCount > 0 {
 			// select 5 comments and its writer for the product
 			var cWriters []CommentWriter
 
-			subrows, suberr := db.Query("SELECT * FROM comments as c INNER JOIN users as u "+
-				"ON c.user_id = u.id WHERE c.product_id = ? ORDER BY c.created_at DESC LIMIT 5", p.ID)
-			if suberr != nil {
-				subrows = nil
+			if len(comments) > 5 {
+				comments = comments[:5]
 			}
-
-			defer subrows.Close()
-			for subrows.Next() {
-				var i int
-				var s string
-				var cw CommentWriter
-				subrows.Scan(&i, &i, &i, &cw.Content, &s, &i, &cw.Writer, &s, &s, &s)
-				cWriters = append(cWriters, cw)
+			for _, c := range comments {
+				u, _ := userCache.Load(c.UserID)
+				cWriters = append(cWriters, CommentWriter{
+					Content: c.Content,
+					Writer:  u.(User).Name,
+				})
 			}
 
 			p.Comments = cWriters
