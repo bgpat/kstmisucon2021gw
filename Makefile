@@ -169,3 +169,11 @@ grafana-server: /usr/local/bin/grafana-server
 	curl -sL https://dl.grafana.com/oss/release/grafana-7.1.5.linux-amd64.tar.gz | tar xzv --strip-components 1 -C $@
 	cp -f /files/grafana/datasources.yml $@/conf/provisioning/datasources/datasources.yml
 	cp -f /files/grafana/dashboards.yml $@/conf/provisioning/dashboards/dashboards.yml
+
+slow.log:
+	mysqldumpslow -s t /tmp/mysql-slow.sql > $@
+
+.PHONY: rotate
+rotate:
+	rm /tmp/mysql-slow.sql
+	systemctl restart mysql
