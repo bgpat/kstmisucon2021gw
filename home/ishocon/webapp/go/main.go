@@ -231,7 +231,7 @@ func main() {
 
 		{
 			userCache = sync.Map{}
-			rows, err := db.Query("SELECT * FROM users")
+			rows, err := db.Query("SELECT id, name, email FROM users")
 			if err != nil {
 				c.String(http.StatusInternalServerError, err.Error())
 				return
