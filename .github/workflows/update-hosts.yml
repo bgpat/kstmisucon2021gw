@@ -19,7 +19,7 @@ jobs:
             .
             | split("\n")[]
             | split(" ")
-            | select(length == 2)
+            | select(length >= 2)
             | {
                 targets: [
                   "\(.[1]):9100",
