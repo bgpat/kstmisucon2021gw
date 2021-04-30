@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"sync"
 	"time"
 
@@ -90,6 +91,7 @@ func (u *User) BuyProduct(pid int) {
 			ProductID: pid,
 			CreatedAt: now.Format("2006-01-02 15:04:05"),
 		}}, h...)
+		log.Printf("%#v\n", h)
 		historyCache.Store(u.ID, h)
 	}
 
