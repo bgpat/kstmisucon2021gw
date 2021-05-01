@@ -168,10 +168,12 @@ func main() {
 		// shorten description
 		sdProducts := make([]Product, 0, len(products))
 		{
-			_, span := tracer.Start(ctx, "sdProducts")
+			ctx, span := tracer.Start(ctx, "sdProducts")
 			for _, p := range products {
 				if utf8.RuneCountInString(p.Description) > 70 {
+					_, span := tracer.Start(ctx, "shorten description")
 					p.Description = string([]rune(p.Description)[:70]) + "…"
+					span.End()
 				}
 				sdProducts = append(sdProducts, p)
 			}
