@@ -120,8 +120,8 @@ func getProductsWithCommentsAt(pctx context.Context, page int) []ProductWithComm
 
 func (p *Product) isBought(uid int) bool {
 	if v, ok := historyCache.Load(uid); ok {
-		for _, h := range v.([]userHistory) {
-			if h.ProductID == p.ID {
+		for _, h := range v.([]Product) {
+			if h.ID == p.ID {
 				return true
 			}
 		}

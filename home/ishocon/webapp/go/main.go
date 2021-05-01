@@ -224,7 +224,7 @@ func main() {
 			if err != nil {
 				panic(err.Error())
 			}
-			cUser.BuyProduct(pid)
+			cUser.BuyProduct(ctx, pid)
 
 			// redirect to user page
 			c.Redirect(http.StatusFound, "/users/"+strconv.Itoa(cUser.ID))
@@ -306,17 +306,19 @@ func main() {
 			}
 			for rows.Next() {
 				var uid int
-				var h userHistory
-				err := rows.Scan(&uid, &h.ProductID, &h.CreatedAt)
+				var h Product
+				err := rows.Scan(&uid, &h.ID, &h.CreatedAt)
 				if err != nil {
 					c.String(http.StatusInternalServerError, err.Error())
 					return
 				}
-				var uh []userHistory
+				p := getProduct(c, h.ID)
+				p.CreatedAt = h.CreatedAt
+				var uh []Product
 				if v, ok := historyCache.Load(uid); ok {
-					uh = v.([]userHistory)
+					uh = v.([]Product)
 				}
-				uh = append(uh, h)
+				uh = append(uh, p)
 				historyCache.Store(uid, uh)
 			}
 		}

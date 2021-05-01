@@ -25,11 +25,6 @@ type User struct {
 	LastLogin string
 }
 
-type userHistory struct {
-	ProductID int
-	CreatedAt string
-}
-
 func authenticate(email string, password string) (User, bool) {
 	var u User
 	err := db.QueryRow("SELECT * FROM users WHERE email = ? LIMIT 1", email).Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.LastLogin)
@@ -76,36 +71,24 @@ func currentUser(ctx context.Context, session sessions.Session) User {
 
 // BuyingHistory : products which user had bought
 func (u *User) BuyingHistory(pctx context.Context) (products []Product) {
-	ctx, span := tracer.Start(pctx, "BuyingHistory")
+	_, span := tracer.Start(pctx, "BuyingHistory")
 	defer span.End()
 
-	var uh []userHistory
 	if v, ok := historyCache.Load(u.ID); ok {
-		uh = v.([]userHistory)
+		products = v.([]Product)
 	}
-	for _, h := range uh {
-		p := Product{}
-		p = getProduct(ctx, h.ProductID)
-		fmt := "2006-01-02 15:04:05"
-		tmp, _ := time.Parse(fmt, h.CreatedAt)
-		p.CreatedAt = (tmp.Add(9 * time.Hour)).Format(fmt)
-
-		products = append(products, p)
-	}
-
 	return
 }
 
 // BuyProduct : buy product
-func (u *User) BuyProduct(pid int) {
+func (u *User) BuyProduct(ctx context.Context, pid int) {
 	now := time.Now()
 
 	if v, ok := historyCache.Load(u.ID); ok {
-		h := v.([]userHistory)
-		h = append([]userHistory{{
-			ProductID: pid,
-			CreatedAt: now.Format("2006-01-02 15:04:05"),
-		}}, h...)
+		h := v.([]Product)
+		p := getProduct(ctx, pid)
+		p.CreatedAt = now.Format("2006-01-02 15:04:05")
+		h = append([]Product{p}, h...)
 		log.Printf("%#v\n", h)
 		historyCache.Store(u.ID, h)
 	}
