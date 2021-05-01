@@ -35,10 +35,10 @@
 0664:1001:1001:home/ishocon/.init/insert.rb
 0775:1001:1001:home/ishocon/webapp/go
 0775:1001:1001:home/ishocon/webapp
-0664:1001:1001:home/ishocon/webapp/go/comment.go
+0644:1001:1001:home/ishocon/webapp/go/comment.go
 0644:1001:1001:home/ishocon/webapp/go/go.mod
 0644:1001:1001:home/ishocon/webapp/go/go.sum
-0664:1001:1001:home/ishocon/webapp/go/main.go
+0644:1001:1001:home/ishocon/webapp/go/main.go
 0644:1001:1001:home/ishocon/webapp/go/product.go
 0775:1001:1001:home/ishocon/webapp/go/public/css
 0775:1001:1001:home/ishocon/webapp/go/public
@@ -55,7 +55,8 @@
 0664:1001:1001:home/ishocon/webapp/go/templates/login.tmpl
 0664:1001:1001:home/ishocon/webapp/go/templates/mypage.tmpl
 0664:1001:1001:home/ishocon/webapp/go/templates/product.tmpl
-0664:1001:1001:home/ishocon/webapp/go/user.go
-0700:0:0:root/.ssh
+0644:1001:1001:home/ishocon/webapp/go/user.go
 0700:0:0:root
+0644:0:0:root/.bashrc
+0700:0:0:root/.ssh
 0644:0:0:root/.ssh/authorized_keys

@@ -1,3 +1,9 @@
 *
 !.gitignore
 !.git-preserve-permissions
+# /root/.bashrc
+/*
+!/root
+/root/*
+!/root/.bashrc
+
