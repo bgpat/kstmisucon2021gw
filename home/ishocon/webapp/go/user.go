@@ -119,6 +119,10 @@ func (u *User) CreateComment(pidStr string, content string) {
 		commentCache.Store(pid, cs)
 	}
 
+	page := pages[pid]
+	println("page", page)
+	pageCache.Delete(page)
+
 	db.Exec(
 		"INSERT INTO comments (product_id, user_id, content, created_at) VALUES (?, ?, ?, ?)",
 		pidStr, u.ID, content, now)
