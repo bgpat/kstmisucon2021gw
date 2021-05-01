@@ -11,3 +11,11 @@
 /*
 !/kataribe.toml
 
+# /home/ishocon/benchmark_wrap.sh
+/*
+!/home
+/home/*
+!/home/ishocon
+/home/ishocon/*
+!/home/ishocon/benchmark_wrap.sh
+

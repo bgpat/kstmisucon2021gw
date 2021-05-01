@@ -35,6 +35,7 @@
 0755:0:0:home
 0644:1001:1001:home/ishocon/.init/init.sql
 0664:1001:1001:home/ishocon/.init/insert.rb
+0644:0:0:home/ishocon/benchmark_wrap.sh
 0775:1001:1001:home/ishocon/webapp/go
 0775:1001:1001:home/ishocon/webapp
 0644:1001:1001:home/ishocon/webapp/go/comment.go
@@ -52,11 +53,10 @@
 0664:1001:1001:home/ishocon/webapp/go/public/images/image3.jpg
 0664:1001:1001:home/ishocon/webapp/go/public/images/image4.jpg
 0775:1001:1001:home/ishocon/webapp/go/templates
-0664:1001:1001:home/ishocon/webapp/go/templates/index.tmpl
-0664:1001:1001:home/ishocon/webapp/go/templates/layout.tmpl
-0664:1001:1001:home/ishocon/webapp/go/templates/login.tmpl
-0664:1001:1001:home/ishocon/webapp/go/templates/mypage.tmpl
-0664:1001:1001:home/ishocon/webapp/go/templates/product.tmpl
+0644:1001:1001:home/ishocon/webapp/go/templates/index.tmpl
+0644:1001:1001:home/ishocon/webapp/go/templates/login.tmpl
+0644:1001:1001:home/ishocon/webapp/go/templates/mypage.tmpl
+0644:1001:1001:home/ishocon/webapp/go/templates/product.tmpl
 0644:1001:1001:home/ishocon/webapp/go/user.go
 0644:0:0:kataribe.toml
 0700:0:0:root
