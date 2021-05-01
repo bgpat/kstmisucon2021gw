@@ -157,27 +157,17 @@ func main() {
 		products := user.BuyingHistory(ctx)
 
 		var totalPay int
-		{
-			_, span := tracer.Start(ctx, "totalPay")
-			for _, p := range products {
-				totalPay += p.Price
-			}
-			span.End()
+		for _, p := range products {
+			totalPay += p.Price
 		}
 
 		// shorten description
 		sdProducts := make([]Product, 0, len(products))
-		{
-			ctx, span := tracer.Start(ctx, "sdProducts")
-			for _, p := range products {
-				if p.ShortDescription != "" {
-					_, span := tracer.Start(ctx, "shorten description")
-					p.Description = p.ShortDescription
-					span.End()
-				}
-				sdProducts = append(sdProducts, p)
+		for _, p := range products {
+			if p.ShortDescription != "" {
+				p.Description = p.ShortDescription
 			}
-			span.End()
+			sdProducts = append(sdProducts, p)
 		}
 
 		{
