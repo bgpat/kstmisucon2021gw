@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	productCache sync.Map
+	productCache map[int]*Product
 	pageCache    sync.Map
 )
 
@@ -45,8 +45,8 @@ func getProduct(pctx context.Context, pid int) Product {
 	ctx, span := tracer.Start(pctx, "getProduct")
 	defer span.End()
 
-	if v, ok := productCache.Load(pid); ok {
-		return v.(Product)
+	if p, ok := productCache[pid]; ok {
+		return *p
 	}
 
 	p := Product{}

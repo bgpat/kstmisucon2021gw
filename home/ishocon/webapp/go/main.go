@@ -277,7 +277,7 @@ func main() {
 		}
 
 		{
-			productCache = sync.Map{}
+			productCache = make(map[int]*Product)
 			rows, err := db.Query("SELECT * FROM products")
 			if err != nil {
 				c.String(http.StatusInternalServerError, err.Error())
@@ -293,7 +293,7 @@ func main() {
 				if utf8.RuneCountInString(p.Description) > 70 {
 					p.ShortDescription = string([]rune(p.Description)[:70]) + "…"
 				}
-				productCache.Store(p.ID, p)
+				productCache[p.ID] = &p
 			}
 		}
 
