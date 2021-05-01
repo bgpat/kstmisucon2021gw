@@ -238,14 +238,14 @@ func main() {
 
 		{
 			userCache = sync.Map{}
-			rows, err := db.Query("SELECT id, name, email, password, last_login FROM users")
+			rows, err := db.Query("SELECT id, name, email FROM users")
 			if err != nil {
 				c.String(http.StatusInternalServerError, err.Error())
 				return
 			}
 			for rows.Next() {
 				var u User
-				err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.LastLogin)
+				err := rows.Scan(&u.ID, &u.Name, &u.Email)
 				if err != nil {
 					c.String(http.StatusInternalServerError, err.Error())
 					return
