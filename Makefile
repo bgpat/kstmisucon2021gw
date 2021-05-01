@@ -170,6 +170,13 @@ grafana-server: /usr/local/bin/grafana-server
 	cp -f /files/grafana/datasources.yml $@/conf/provisioning/datasources/datasources.yml
 	cp -f /files/grafana/dashboards.yml $@/conf/provisioning/dashboards/dashboards.yml
 
+/usr/local/bin/jaeger-all-in-one:
+	curl -sL https://github.com/jaegertracing/jaeger/releases/download/v1.22.0/jaeger-1.22.0-linux-amd64.tar.gz | tar xzv --strip-components 1 -C /usr/local/bin/ jaeger-1.22.0-linux-amd64/jaeger-all-in-one
+
+.PHONY: jeager
+jaeger: /usr/local/bin/jaeger-all-in-one
+	nohup jaeger-all-in-one &
+
 slow.log: /tmp/mysql-slow.sql
 	mysqldumpslow -s t $< > $@
 	cat $@
