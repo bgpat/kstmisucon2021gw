@@ -45,8 +45,8 @@ func main() {
 	user := getEnv("ISHOCON1_DB_USER", "ishocon")
 	pass := getEnv("ISHOCON1_DB_PASSWORD", "ishocon")
 	dbname := getEnv("ISHOCON1_DB_NAME", "ishocon1")
-	otelsql.Register("otelmysql", "mysql")
-	db, _ = sql.Open("otelmysql", user+":"+pass+"@/"+dbname)
+	driver, _ := otelsql.Register("mysql", "mysql")
+	db, _ = sql.Open(driver, user+":"+pass+"@/"+dbname)
 	db.SetMaxIdleConns(5)
 
 	r := gin.Default()
