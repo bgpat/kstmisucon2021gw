@@ -23,15 +23,9 @@ type Product struct {
 
 // ProductWithComments Model
 type ProductWithComments struct {
-	ID               int
-	Name             string
-	Description      string
-	ShortDescription string
-	ImagePath        string
-	Price            int
-	CreatedAt        string
-	CommentCount     int
-	Comments         []CommentWriter
+	Product
+	CommentCount int
+	Comments     []CommentWriter
 }
 
 // CommentWriter Model
@@ -84,9 +78,8 @@ func getProductsWithCommentsAt(pctx context.Context, page int) []ProductWithComm
 
 	products := []ProductWithComments{}
 	for _, id := range ids {
-		p := ProductWithComments{ID: id}
 		product := getProduct(ctx, id)
-		p.Name, p.Description, p.ShortDescription, p.ImagePath, p.Price, p.CreatedAt = product.Name, product.Description, product.ShortDescription, product.ImagePath, product.Price, product.CreatedAt
+		p := ProductWithComments{Product: product}
 
 		var comments []Comment
 		if v, ok := commentCache.Load(p.ID); ok {
