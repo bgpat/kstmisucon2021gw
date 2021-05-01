@@ -2,6 +2,7 @@
 EnvironmentFile=/home/ishocon/.bashrc
 WorkingDirectory=/home/ishocon/webapp/go
 ExecStart=/home/ishocon/webapp/go/webapp
+ExecStartPre=rm -f /tmp/webapp.sock
 Restart=always
 User=ishocon
 Group=ishocon
