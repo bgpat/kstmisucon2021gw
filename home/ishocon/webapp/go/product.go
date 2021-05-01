@@ -6,8 +6,9 @@ import (
 )
 
 var (
-	productCache map[int]*Product
-	pageCache    sync.Map
+	productCache     map[int]*Product
+	productPageCache sync.Map
+	pages            map[int]int
 )
 
 // Product Model
@@ -59,7 +60,7 @@ func getProductsWithCommentsAt(pctx context.Context, page int) []ProductWithComm
 
 	// select 50 products with offset page*50
 	var ids []int
-	if v, ok := pageCache.Load(page); ok {
+	if v, ok := productPageCache.Load(page); ok {
 		ids = v.([]int)
 	} else {
 		rows, err := db.QueryContext(ctx, "SELECT id FROM products ORDER BY id DESC LIMIT 50 OFFSET ?", page*50)
@@ -73,7 +74,7 @@ func getProductsWithCommentsAt(pctx context.Context, page int) []ProductWithComm
 			rows.Scan(&id)
 			ids = append(ids, id)
 		}
-		pageCache.Store(page, ids)
+		productPageCache.Store(page, ids)
 	}
 
 	products := []ProductWithComments{}

@@ -2,7 +2,10 @@ package main
 
 import "sync"
 
-var commentCache sync.Map
+var (
+	commentCache sync.Map
+	pageCache    sync.Map
+)
 
 // Comment Model
 type Comment struct {

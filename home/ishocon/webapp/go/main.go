@@ -122,26 +122,32 @@ func main() {
 		if err != nil {
 			page = 0
 		}
-		products := getProductsWithCommentsAt(ctx, page)
-		// shorten description and comment
-		var sProducts []ProductWithComments
-		_, sSpan := tracer.Start(ctx, "sProducts")
-		for _, p := range products {
-			if p.ShortDescription != "" {
-				p.Description = p.ShortDescription
-			}
 
-			var newCW []CommentWriter
-			for _, c := range p.Comments {
-				if c.ShortContent != "" {
-					c.Content = c.ShortContent
+		var sProducts []ProductWithComments
+		if v, ok := pageCache.Load(page); ok {
+			sProducts = v.([]ProductWithComments)
+		} else {
+			products := getProductsWithCommentsAt(ctx, page)
+			// shorten description and comment
+			_, sSpan := tracer.Start(ctx, "sProducts")
+			for _, p := range products {
+				if p.ShortDescription != "" {
+					p.Description = p.ShortDescription
 				}
-				newCW = append(newCW, c)
+
+				var newCW []CommentWriter
+				for _, c := range p.Comments {
+					if c.ShortContent != "" {
+						c.Content = c.ShortContent
+					}
+					newCW = append(newCW, c)
+				}
+				p.Comments = newCW
+				sProducts = append(sProducts, p)
 			}
-			p.Comments = newCW
-			sProducts = append(sProducts, p)
+			pageCache.Store(page, sProducts)
+			sSpan.End()
 		}
-		sSpan.End()
 
 		_, renderSpan := tracer.Start(ctx, "render")
 		defer renderSpan.End()
@@ -278,11 +284,12 @@ func main() {
 
 		{
 			productCache = make(map[int]*Product)
-			rows, err := db.Query("SELECT * FROM products")
+			rows, err := db.Query("SELECT * FROM products ORDER BY id DESC")
 			if err != nil {
 				c.String(http.StatusInternalServerError, err.Error())
 				return
 			}
+			var i int
 			for rows.Next() {
 				var p Product
 				err := rows.Scan(&p.ID, &p.Name, &p.Description, &p.ImagePath, &p.Price, &p.CreatedAt)
@@ -294,6 +301,9 @@ func main() {
 					p.ShortDescription = string([]rune(p.Description)[:70]) + "…"
 				}
 				productCache[p.ID] = &p
+
+				pages[p.ID] = i / 50
+				i++
 			}
 		}
 
