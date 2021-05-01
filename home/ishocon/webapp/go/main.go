@@ -157,26 +157,38 @@ func main() {
 		products := user.BuyingHistory(ctx)
 
 		var totalPay int
-		for _, p := range products {
-			totalPay += p.Price
+		{
+			_, span := tracer.Start(ctx, "totalPay")
+			for _, p := range products {
+				totalPay += p.Price
+			}
+			span.End()
 		}
 
 		// shorten description
 		var sdProducts []Product
-		for _, p := range products {
-			if utf8.RuneCountInString(p.Description) > 70 {
-				p.Description = string([]rune(p.Description)[:70]) + "…"
+		{
+			_, span := tracer.Start(ctx, "sdProducts")
+			for _, p := range products {
+				if utf8.RuneCountInString(p.Description) > 70 {
+					p.Description = string([]rune(p.Description)[:70]) + "…"
+				}
+				sdProducts = append(sdProducts, p)
 			}
-			sdProducts = append(sdProducts, p)
+			span.End()
 		}
 
-		r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/mypage.tmpl")))
-		c.HTML(http.StatusOK, "base", gin.H{
-			"CurrentUser": cUser,
-			"User":        user,
-			"Products":    sdProducts,
-			"TotalPay":    totalPay,
-		})
+		{
+			_, span := tracer.Start(ctx, "render")
+			r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/mypage.tmpl")))
+			c.HTML(http.StatusOK, "base", gin.H{
+				"CurrentUser": cUser,
+				"User":        user,
+				"Products":    sdProducts,
+				"TotalPay":    totalPay,
+			})
+			span.End()
+		}
 	})
 
 	// GET /products/:productId

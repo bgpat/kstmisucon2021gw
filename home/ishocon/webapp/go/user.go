@@ -59,6 +59,9 @@ func getUser(ctx context.Context, uid int) User {
 }
 
 func currentUser(ctx context.Context, session sessions.Session) User {
+	ctx, span := tracer.Start(ctx, "currentUser")
+	defer span.End()
+
 	uid := session.Get("uid")
 	u := User{}
 	r := db.QueryRow("SELECT * FROM users WHERE id = ? LIMIT 1", uid)
