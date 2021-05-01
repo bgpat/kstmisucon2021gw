@@ -10,6 +10,7 @@ import (
 	"sync"
 	"unicode/utf8"
 
+	"github.com/XSAM/otelsql"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
@@ -44,7 +45,8 @@ func main() {
 	user := getEnv("ISHOCON1_DB_USER", "ishocon")
 	pass := getEnv("ISHOCON1_DB_PASSWORD", "ishocon")
 	dbname := getEnv("ISHOCON1_DB_NAME", "ishocon1")
-	db, _ = sql.Open("mysql", user+":"+pass+"@/"+dbname)
+	otelsql.Register("otelmysql", "mysql")
+	db, _ = sql.Open("otelmysql", user+":"+pass+"@/"+dbname)
 	db.SetMaxIdleConns(5)
 
 	r := gin.Default()
