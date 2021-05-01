@@ -171,17 +171,15 @@ func main() {
 			sdProducts = append(sdProducts, p)
 		}
 
-		{
-			_, span := tracer.Start(ctx, "render")
-			r.SetHTMLTemplate(mypageTemplate)
-			c.HTML(http.StatusOK, "base", gin.H{
-				"CurrentUser": cUser,
-				"User":        user,
-				"Products":    sdProducts,
-				"TotalPay":    totalPay,
-			})
-			span.End()
-		}
+		_, renderSpan := tracer.Start(ctx, "render")
+		defer renderSpan.End()
+		r.SetHTMLTemplate(mypageTemplate)
+		c.HTML(http.StatusOK, "base", gin.H{
+			"CurrentUser": cUser,
+			"User":        user,
+			"Products":    sdProducts,
+			"TotalPay":    totalPay,
+		})
 	})
 
 	// GET /products/:productId
