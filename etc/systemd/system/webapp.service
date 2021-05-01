@@ -1,4 +1,5 @@
 [Service]
+Environment=GIN_MODE=release
 EnvironmentFile=/home/ishocon/.bashrc
 WorkingDirectory=/home/ishocon/webapp/go
 ExecStart=/home/ishocon/webapp/go/webapp
