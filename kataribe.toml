@@ -2,7 +2,7 @@
 ranking_count = 20
 
 # Top Slow Requests
-slow_count = 37
+slow_count = 0
 
 # Show Standard Deviation column
 show_stddev = true
@@ -48,34 +48,30 @@ duration_index = 10
 #bytes_index = 7
 #duration_index = 8
 
-# You can aggregate requests by regular expression
-# For overview of regexp syntax: https://golang.org/pkg/regexp/syntax/
 [[bundle]]
-regexp = '^(GET|HEAD) /memo/[0-9]+\b'
-name = "get memo"
+regexp = '^GET /initialize'
+name = "initialize"
 
 [[bundle]]
-regexp = '^(GET|HEAD) /stylesheets/'
-name = "stylesheets"
+regexp = '^GET /users/\d+'
+name = "user"
 
 [[bundle]]
-regexp = '^(GET|HEAD) /images/'
+regexp = '^GET /(\?page=\d+)?'
+name = "top"
+
+[[bundle]]
+regexp = '^GET /images/'
 name = "images"
 
-# You can replace the part of urls which matched to your regular expressions.
-# For overview of regexp syntax: https://golang.org/pkg/regexp/syntax/
-#[[replace]]
-#regexp = '/[0-9]+/'
-#replace = '/<num>/'
-#
-#[[replace]]
-#regexp = '/[0-9]+\s'
-#replace = '/<num> '
-#
-#[[replace]]
-#regexp = '=[0-9]+&'
-#replace = '=<num>&'
-#
-#[[replace]]
-#regexp = '=[0-9]+\s'
-#replace = '=<num> '
+[[bundle]]
+regexp = '^POST /login'
+name = "login"
+
+[[bundle]]
+regexp = '^POST /comments/\d+'
+name = "comment"
+
+[[bundle]]
+regexp = '^POST /products/buy/\d+'
+name = "buy"

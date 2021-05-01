@@ -172,11 +172,16 @@ grafana-server: /usr/local/bin/grafana-server
 
 slow.log: /tmp/mysql-slow.sql
 	mysqldumpslow -s t $< > $@
+	cat $@
+
+kataribe.log: /var/log/nginx/access.log kataribe.toml
+	kataribe -f /kataribe.toml < $< > kataribe.log
+	cat $@
 
 .PHONY: rotate
 rotate:
-	rm /tmp/mysql-slow.sql
-	systemctl restart mysql
+	rm -f /tmp/mysql-slow.sql /var/log/nginx/access.log
+	systemctl restart mysql nginx
 
 .PHONY: deploy
 deploy:
