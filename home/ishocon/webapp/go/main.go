@@ -31,7 +31,7 @@ func getEnv(key, fallback string) string {
 var tracer = otel.Tracer("webapp")
 
 func main() {
-	exporter, err := jaeger.NewRawExporter(jaeger.WithCollectorEndpoint())
+	exporter, err := jaeger.NewRawExporter(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint("http://localhost:14268/api/traces")))
 	if err != nil {
 		panic(err)
 	}
