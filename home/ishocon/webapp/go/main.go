@@ -4,13 +4,13 @@ import (
 	"database/sql"
 	"html/template"
 	"net/http"
-	_ "net/http/pprof"
 	"os"
 	"runtime/trace"
 	"strconv"
 	"sync"
 	"unicode/utf8"
 
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
@@ -35,6 +35,7 @@ func main() {
 	db.SetMaxIdleConns(5)
 
 	r := gin.Default()
+	pprof.Register(r, "/debug/pprof")
 	// load templates
 	r.Use(static.Serve("/css", static.LocalFile("public/css", true)))
 	r.Use(static.Serve("/images", static.LocalFile("public/images", true)))
