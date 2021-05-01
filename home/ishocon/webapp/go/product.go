@@ -36,8 +36,9 @@ type ProductWithComments struct {
 
 // CommentWriter Model
 type CommentWriter struct {
-	Content string
-	Writer  string
+	Content      string
+	ShortContent string
+	Writer       string
 }
 
 func getProduct(pid int) Product {

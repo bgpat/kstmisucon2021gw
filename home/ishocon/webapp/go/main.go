@@ -126,8 +126,8 @@ func main() {
 
 			var newCW []CommentWriter
 			for _, c := range p.Comments {
-				if utf8.RuneCountInString(c.Content) > 25 {
-					c.Content = string([]rune(c.Content)[:25]) + "…"
+				if c.ShortContent != "" {
+					c.Content = c.ShortContent
 				}
 				newCW = append(newCW, c)
 			}
@@ -339,6 +339,9 @@ func main() {
 				var comments []Comment
 				if v, ok := commentCache.Load(c.ProductID); ok {
 					comments = v.([]Comment)
+				}
+				if utf8.RuneCountInString(c.Content) > 70 {
+					c.ShortContent = string([]rune(c.Content)[:70]) + "…"
 				}
 				comments = append(comments, c)
 				commentCache.Store(c.ProductID, comments)

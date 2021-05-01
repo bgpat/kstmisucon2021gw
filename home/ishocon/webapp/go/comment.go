@@ -6,11 +6,12 @@ var commentCache sync.Map
 
 // Comment Model
 type Comment struct {
-	ID        int
-	ProductID int
-	UserID    int
-	Content   string
-	CreatedAt string
+	ID           int
+	ProductID    int
+	UserID       int
+	Content      string
+	ShortContent string
+	CreatedAt    string
 }
 
 func getComments(pid int) []Comment {

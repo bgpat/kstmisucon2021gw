@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gin-gonic/contrib/sessions"
 )
@@ -121,11 +122,16 @@ func (u *User) CreateComment(pidStr string, content string) {
 
 	if v, ok := commentCache.Load(pid); ok {
 		cs := v.([]Comment)
+		sc := content
+		if utf8.RuneCountInString(sc) > 25 {
+			sc = string([]rune(sc)[:25]) + "…"
+		}
 		cs = append([]Comment{{
-			ProductID: pid,
-			UserID:    u.ID,
-			Content:   content,
-			CreatedAt: now.Format("2006-01-02 15:04:05"),
+			ProductID:    pid,
+			UserID:       u.ID,
+			Content:      content,
+			ShortContent: sc,
+			CreatedAt:    now.Format("2006-01-02 15:04:05"),
 		}}, cs...)
 		commentCache.Store(pid, cs)
 	}
