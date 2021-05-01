@@ -5,7 +5,10 @@ import (
 	"sync"
 )
 
-var productCache sync.Map
+var (
+	productCache sync.Map
+	pageCache    sync.Map
+)
 
 // Product Model
 type Product struct {
@@ -57,18 +60,28 @@ func getProductsWithCommentsAt(ctx context.Context, page int) []ProductWithComme
 	defer span.End()
 
 	// select 50 products with offset page*50
-	products := []ProductWithComments{}
-	rows, err := db.QueryContext(ctx, "SELECT id FROM products ORDER BY id DESC LIMIT 50 OFFSET ?", page*50)
-	if err != nil {
-		return nil
+	var ids []int
+	if v, ok := pageCache.Load(page); ok {
+		ids = v.([]int)
+	} else {
+		rows, err := db.QueryContext(ctx, "SELECT id FROM products ORDER BY id DESC LIMIT 50 OFFSET ?", page*50)
+		if err != nil {
+			return nil
+		}
+
+		defer rows.Close()
+		for rows.Next() {
+			var id int
+			rows.Scan(&id)
+			ids = append(ids, id)
+		}
+		pageCache.Store(page, ids)
 	}
 
-	defer rows.Close()
-	for rows.Next() {
+	products := []ProductWithComments{}
+	for _, id := range ids {
 		p := ProductWithComments{}
-		err = rows.Scan(&p.ID)
-
-		product := getProduct(p.ID)
+		product := getProduct(id)
 		p.Name, p.Description, p.ShortDescription, p.ImagePath, p.Price, p.CreatedAt = product.Name, product.Description, product.ShortDescription, product.ImagePath, product.Price, product.CreatedAt
 
 		var comments []Comment
