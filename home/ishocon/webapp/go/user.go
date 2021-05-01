@@ -120,7 +120,6 @@ func (u *User) CreateComment(pidStr string, content string) {
 	}
 
 	page := pages[pid]
-	println("page", page)
 	pageCache.Delete(page)
 
 	db.Exec(
