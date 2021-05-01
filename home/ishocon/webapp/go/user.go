@@ -130,7 +130,7 @@ func (u *User) CreateComment(pidStr string, content string) {
 		commentCache.Store(pid, cs)
 	}
 
-	db.Exec(
+	go db.Exec(
 		"INSERT INTO comments (product_id, user_id, content, created_at) VALUES (?, ?, ?, ?)",
 		pidStr, u.ID, content, now)
 }
@@ -144,5 +144,5 @@ func (u *User) UpdateLastLogin() {
 		userCache.Store(u.ID, user)
 	}
 
-	db.Exec("UPDATE users SET last_login = ? WHERE id = ?", now, u.ID)
+	go db.Exec("UPDATE users SET last_login = ? WHERE id = ?", now, u.ID)
 }
