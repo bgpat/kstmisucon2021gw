@@ -35,7 +35,7 @@ func main() {
 	db.SetMaxIdleConns(5)
 
 	r := gin.Default()
-	pprof.Register(r, "/debug/pprof")
+	pprof.Register(r, "debug/pprof")
 	// load templates
 	r.Use(static.Serve("/css", static.LocalFile("public/css", true)))
 	r.Use(static.Serve("/images", static.LocalFile("public/images", true)))
