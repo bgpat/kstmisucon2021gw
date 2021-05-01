@@ -175,6 +175,7 @@ grafana-server: /usr/local/bin/grafana-server
 
 .PHONY: jeager
 jaeger: /usr/local/bin/jaeger-all-in-one
+	-pkill jaeger-all-in-one
 	nohup jaeger-all-in-one &
 
 slow.log: /tmp/mysql-slow.sql
