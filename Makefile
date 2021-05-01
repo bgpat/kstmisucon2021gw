@@ -166,7 +166,7 @@ grafana-server: /usr/local/bin/grafana-server
 
 /opt/grafana:
 	mkdir -p $@
-	curl -sL https://dl.grafana.com/oss/release/grafana-7.1.5.linux-amd64.tar.gz | tar xzv --strip-components 1 -C $@
+	curl -sL https://dl.grafana.com/oss/release/grafana-7.5.5.linux-amd64.tar.gz | tar xzv --strip-components 1 -C $@
 	cp -f /files/grafana/datasources.yml $@/conf/provisioning/datasources/datasources.yml
 	cp -f /files/grafana/dashboards.yml $@/conf/provisioning/dashboards/dashboards.yml
 
@@ -186,7 +186,8 @@ rotate:
 .PHONY: deploy
 deploy:
 	systemctl stop webapp
-	$(MAKE) /home/ishocon/webapp/go
+	rm -f /home/ishocon/webapp/go/webapp
+	$(MAKE) /home/ishocon/webapp/go/webapp
 	systemctl start webapp
 	systemctl status webapp
 
