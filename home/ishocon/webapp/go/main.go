@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"html/template"
 	"net/http"
 	"os"
 	"strconv"
@@ -53,7 +52,6 @@ func main() {
 	// load templates
 	r.Use(static.Serve("/css", static.LocalFile("public/css", true)))
 	r.Use(static.Serve("/images", static.LocalFile("public/images", true)))
-	layout := "templates/layout.tmpl"
 
 	// session store
 	store := sessions.NewCookieStore([]byte("mysession"))
@@ -66,8 +64,7 @@ func main() {
 		session.Clear()
 		session.Save()
 
-		tmpl, _ := template.ParseFiles("templates/login.tmpl")
-		r.SetHTMLTemplate(tmpl)
+		r.SetHTMLTemplate(loginTemplate)
 		c.HTML(http.StatusOK, "login", gin.H{
 			"Message": "ECサイトで爆買いしよう！！！！",
 		})
@@ -90,8 +87,7 @@ func main() {
 			c.Redirect(http.StatusSeeOther, "/")
 		} else {
 			// 認証失敗
-			tmpl, _ := template.ParseFiles("templates/login.tmpl")
-			r.SetHTMLTemplate(tmpl)
+			r.SetHTMLTemplate(loginTemplate)
 			c.HTML(http.StatusOK, "login", gin.H{
 				"Message": "ログインに失敗しました",
 			})
@@ -104,8 +100,7 @@ func main() {
 		session.Clear()
 		session.Save()
 
-		tmpl, _ := template.ParseFiles("templates/login.tmpl")
-		r.SetHTMLTemplate(tmpl)
+		r.SetHTMLTemplate(loginTemplate)
 		c.Redirect(http.StatusFound, "/login")
 	})
 
@@ -143,7 +138,7 @@ func main() {
 
 		_, renderSpan := tracer.Start(ctx, "render")
 		defer renderSpan.End()
-		r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/index.tmpl")))
+		r.SetHTMLTemplate(indexTemplate)
 		c.HTML(http.StatusOK, "base", gin.H{
 			"CurrentUser": cUser,
 			"Products":    sProducts,
@@ -178,7 +173,7 @@ func main() {
 
 		{
 			_, span := tracer.Start(ctx, "render")
-			r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/mypage.tmpl")))
+			r.SetHTMLTemplate(mypageTemplate)
 			c.HTML(http.StatusOK, "base", gin.H{
 				"CurrentUser": cUser,
 				"User":        user,
@@ -201,7 +196,7 @@ func main() {
 		cUser := currentUser(ctx, sessions.Default(c))
 		bought := product.isBought(cUser.ID)
 
-		r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/product.tmpl")))
+		r.SetHTMLTemplate(productTemplate)
 		c.HTML(http.StatusOK, "base", gin.H{
 			"CurrentUser":   cUser,
 			"Product":       product,
@@ -217,8 +212,7 @@ func main() {
 
 		// need authenticated
 		if notAuthenticated(sessions.Default(c)) {
-			tmpl, _ := template.ParseFiles("templates/login.tmpl")
-			r.SetHTMLTemplate(tmpl)
+			r.SetHTMLTemplate(loginTemplate)
 			c.HTML(http.StatusForbidden, "login", gin.H{
 				"Message": "先にログインをしてください",
 			})
@@ -232,8 +226,7 @@ func main() {
 			cUser.BuyProduct(pid)
 
 			// redirect to user page
-			tmpl, _ := template.ParseFiles("templates/mypage.tmpl")
-			r.SetHTMLTemplate(tmpl)
+			r.SetHTMLTemplate(mypageTemplate)
 			c.Redirect(http.StatusFound, "/users/"+strconv.Itoa(cUser.ID))
 		}
 	})
@@ -245,8 +238,7 @@ func main() {
 
 		// need authenticated
 		if notAuthenticated(sessions.Default(c)) {
-			tmpl, _ := template.ParseFiles("templates/login.tmpl")
-			r.SetHTMLTemplate(tmpl)
+			r.SetHTMLTemplate(loginTemplate)
 			c.HTML(http.StatusForbidden, "login", gin.H{
 				"Message": "先にログインをしてください",
 			})
@@ -256,8 +248,7 @@ func main() {
 			cUser.CreateComment(c.Param("productId"), c.PostForm("content"))
 
 			// redirect to user page
-			tmpl, _ := template.ParseFiles("templates/mypage.tmpl")
-			r.SetHTMLTemplate(tmpl)
+			r.SetHTMLTemplate(mypageTemplate)
 			c.Redirect(http.StatusFound, "/users/"+strconv.Itoa(cUser.ID))
 		}
 	})
