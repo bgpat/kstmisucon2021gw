@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"html/template"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
+	"runtime/trace"
 	"strconv"
 	"sync"
 	"unicode/utf8"
@@ -128,12 +130,15 @@ func main() {
 
 	// GET /users/:userId
 	r.GET("/users/:userId", func(c *gin.Context) {
+		ctx, task := trace.NewTask(c, "GetUser")
+		defer task.End()
+
 		cUser := currentUser(sessions.Default(c))
 
 		uid, _ := strconv.Atoi(c.Param("userId"))
 		user := getUser(uid)
 
-		products := user.BuyingHistory()
+		products := user.BuyingHistory(ctx)
 
 		var totalPay int
 		for _, p := range products {
@@ -149,6 +154,7 @@ func main() {
 			sdProducts = append(sdProducts, p)
 		}
 
+		_, renderTask := trace.NewTask(ctx, "Render")
 		r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/mypage.tmpl")))
 		c.HTML(http.StatusOK, "base", gin.H{
 			"CurrentUser": cUser,
@@ -156,6 +162,7 @@ func main() {
 			"Products":    sdProducts,
 			"TotalPay":    totalPay,
 		})
+		renderTask.End()
 	})
 
 	// GET /products/:productId

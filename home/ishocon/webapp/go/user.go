@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"log"
+	"runtime/trace"
 	"strconv"
 	"sync"
 	"time"
@@ -63,7 +65,10 @@ func currentUser(session sessions.Session) User {
 }
 
 // BuyingHistory : products which user had bought
-func (u *User) BuyingHistory() (products []Product) {
+func (u *User) BuyingHistory(pctx context.Context) (products []Product) {
+	_, task := trace.NewTask(pctx, "BuyingHistory")
+	defer task.End()
+
 	var uh []userHistory
 	if v, ok := historyCache.Load(u.ID); ok {
 		uh = v.([]userHistory)
