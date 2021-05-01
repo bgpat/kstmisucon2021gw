@@ -1,12 +1,13 @@
 package main
 
 import (
-	//"context"
+	"context"
 	"database/sql"
 	"net/http"
 	"os"
 	"strconv"
 	"sync"
+	"time"
 	"unicode/utf8"
 
 	"github.com/XSAM/otelsql"
@@ -15,8 +16,8 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"go.opentelemetry.io/otel"
-	//"go.opentelemetry.io/otel/exporters/trace/jaeger"
-	//sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/exporters/trace/jaeger"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
 var db *sql.DB
@@ -31,16 +32,22 @@ func getEnv(key, fallback string) string {
 var tracer = otel.Tracer("webapp")
 
 func main() {
-	/*
-		exporter, err := jaeger.NewRawExporter(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint("http://localhost:14268/api/traces")))
-		if err != nil {
-			panic(err)
-		}
-		bsp := sdktrace.NewBatchSpanProcessor(exporter)
-		tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(bsp))
-		defer func() { _ = tp.Shutdown(context.Background()) }()
-		otel.SetTracerProvider(tp)
-	*/
+	exporter, err := jaeger.NewRawExporter(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint("http://localhost:14268/api/traces")))
+	if err != nil {
+		panic(err)
+	}
+	bsp := sdktrace.NewBatchSpanProcessor(
+		exporter,
+		sdktrace.WithMaxQueueSize(0x100000000),
+		sdktrace.WithBatchTimeout(2*time.Minute),
+		sdktrace.WithExportTimeout(2*time.Minute),
+	)
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithSpanProcessor(bsp),
+		sdktrace.WithSampler(sdktrace.TraceIDRatioBased(0.01)),
+	)
+	defer func() { _ = tp.Shutdown(context.Background()) }()
+	otel.SetTracerProvider(tp)
 
 	// database setting
 	user := getEnv("ISHOCON1_DB_USER", "ishocon")
