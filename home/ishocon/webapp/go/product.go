@@ -80,7 +80,7 @@ func getProductsWithCommentsAt(ctx context.Context, page int) []ProductWithComme
 
 	products := []ProductWithComments{}
 	for _, id := range ids {
-		p := ProductWithComments{}
+		p := ProductWithComments{ID: id}
 		product := getProduct(id)
 		p.Name, p.Description, p.ShortDescription, p.ImagePath, p.Price, p.CreatedAt = product.Name, product.Description, product.ShortDescription, product.ImagePath, product.Price, product.CreatedAt
 
