@@ -1,20 +1,22 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"html/template"
 	"net/http"
 	"os"
-	"runtime/trace"
 	"strconv"
 	"sync"
 	"unicode/utf8"
 
-	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/trace/jaeger"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
 var db *sql.DB
@@ -26,7 +28,18 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
+var tracer = otel.Tracer("webapp")
+
 func main() {
+	exporter, err := jaeger.NewRawExporter(jaeger.WithCollectorEndpoint())
+	if err != nil {
+		panic(err)
+	}
+	bsp := sdktrace.NewBatchSpanProcessor(exporter)
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(bsp))
+	defer func() { _ = tp.Shutdown(context.Background()) }()
+	otel.SetTracerProvider(tp)
+
 	// database setting
 	user := getEnv("ISHOCON1_DB_USER", "ishocon")
 	pass := getEnv("ISHOCON1_DB_PASSWORD", "ishocon")
@@ -96,7 +109,10 @@ func main() {
 
 	// GET /
 	r.GET("/", func(c *gin.Context) {
-		cUser := currentUser(sessions.Default(c))
+		ctx, span := tracer.Start(c, "GET /")
+		defer span.End()
+
+		cUser := currentUser(ctx, sessions.Default(c))
 
 		page, err := strconv.Atoi(c.Query("page"))
 		if err != nil {
@@ -130,13 +146,13 @@ func main() {
 
 	// GET /users/:userId
 	r.GET("/users/:userId", func(c *gin.Context) {
-		ctx, task := trace.NewTask(c, "GetUser")
-		defer task.End()
+		ctx, span := tracer.Start(c, "GET /users/:userId")
+		defer span.End()
 
-		cUser := currentUser(sessions.Default(c))
+		cUser := currentUser(ctx, sessions.Default(c))
 
 		uid, _ := strconv.Atoi(c.Param("userId"))
-		user := getUser(uid)
+		user := getUser(ctx, uid)
 
 		products := user.BuyingHistory(ctx)
 
@@ -154,7 +170,6 @@ func main() {
 			sdProducts = append(sdProducts, p)
 		}
 
-		_, renderTask := trace.NewTask(ctx, "Render")
 		r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/mypage.tmpl")))
 		c.HTML(http.StatusOK, "base", gin.H{
 			"CurrentUser": cUser,
@@ -162,16 +177,18 @@ func main() {
 			"Products":    sdProducts,
 			"TotalPay":    totalPay,
 		})
-		renderTask.End()
 	})
 
 	// GET /products/:productId
 	r.GET("/products/:productId", func(c *gin.Context) {
+		ctx, span := tracer.Start(c, "GET /products/:productId")
+		defer span.End()
+
 		pid, _ := strconv.Atoi(c.Param("productId"))
 		product := getProduct(pid)
 		comments := getComments(pid)
 
-		cUser := currentUser(sessions.Default(c))
+		cUser := currentUser(ctx, sessions.Default(c))
 		bought := product.isBought(cUser.ID)
 
 		r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/product.tmpl")))
@@ -185,6 +202,9 @@ func main() {
 
 	// POST /products/buy/:productId
 	r.POST("/products/buy/:productId", func(c *gin.Context) {
+		ctx, span := tracer.Start(c, "POST /products/buy/:productId")
+		defer span.End()
+
 		// need authenticated
 		if notAuthenticated(sessions.Default(c)) {
 			tmpl, _ := template.ParseFiles("templates/login.tmpl")
@@ -194,7 +214,7 @@ func main() {
 			})
 		} else {
 			// buy product
-			cUser := currentUser(sessions.Default(c))
+			cUser := currentUser(ctx, sessions.Default(c))
 			pid, err := strconv.Atoi(c.Param("productId"))
 			if err != nil {
 				panic(err.Error())
@@ -210,6 +230,9 @@ func main() {
 
 	// POST /comments/:productId
 	r.POST("/comments/:productId", func(c *gin.Context) {
+		ctx, span := tracer.Start(c, "POST /comments/:productId")
+		defer span.End()
+
 		// need authenticated
 		if notAuthenticated(sessions.Default(c)) {
 			tmpl, _ := template.ParseFiles("templates/login.tmpl")
@@ -219,7 +242,7 @@ func main() {
 			})
 		} else {
 			// create comment
-			cUser := currentUser(sessions.Default(c))
+			cUser := currentUser(ctx, sessions.Default(c))
 			cUser.CreateComment(c.Param("productId"), c.PostForm("content"))
 
 			// redirect to user page
@@ -323,6 +346,5 @@ func main() {
 		c.String(http.StatusOK, "Finish")
 	})
 
-	pprof.Register(r, "debug/pprof")
 	r.Run(":8080")
 }

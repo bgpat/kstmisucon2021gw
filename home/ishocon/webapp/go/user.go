@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log"
-	"runtime/trace"
 	"strconv"
 	"sync"
 	"time"
@@ -45,7 +44,10 @@ func notAuthenticated(session sessions.Session) bool {
 	return !(uid.(int) > 0)
 }
 
-func getUser(uid int) User {
+func getUser(ctx context.Context, uid int) User {
+	ctx, span := tracer.Start(ctx, "getUser")
+	defer span.End()
+
 	u := User{}
 	r := db.QueryRow("SELECT * FROM users WHERE id = ? LIMIT 1", uid)
 	err := r.Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.LastLogin)
@@ -56,7 +58,7 @@ func getUser(uid int) User {
 	return u
 }
 
-func currentUser(session sessions.Session) User {
+func currentUser(ctx context.Context, session sessions.Session) User {
 	uid := session.Get("uid")
 	u := User{}
 	r := db.QueryRow("SELECT * FROM users WHERE id = ? LIMIT 1", uid)
@@ -69,9 +71,9 @@ func currentUser(session sessions.Session) User {
 }
 
 // BuyingHistory : products which user had bought
-func (u *User) BuyingHistory(pctx context.Context) (products []Product) {
-	_, task := trace.NewTask(pctx, "BuyingHistory")
-	defer task.End()
+func (u *User) BuyingHistory(ctx context.Context) (products []Product) {
+	ctx, span := tracer.Start(ctx, "BuyingHistory")
+	defer span.End()
 
 	var uh []userHistory
 	if v, ok := historyCache.Load(u.ID); ok {
