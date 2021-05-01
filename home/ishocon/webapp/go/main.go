@@ -170,9 +170,9 @@ func main() {
 		{
 			ctx, span := tracer.Start(ctx, "sdProducts")
 			for _, p := range products {
-				if utf8.RuneCountInString(p.Description) > 70 {
+				if p.ShortDescription != "" {
 					_, span := tracer.Start(ctx, "shorten description")
-					p.Description = string([]rune(p.Description)[:70]) + "…"
+					p.Description = p.ShortDescription
 					span.End()
 				}
 				sdProducts = append(sdProducts, p)
@@ -304,6 +304,9 @@ func main() {
 				if err != nil {
 					c.String(http.StatusInternalServerError, err.Error())
 					return
+				}
+				if utf8.RuneCountInString(p.Description) > 70 {
+					p.ShortDescription = string([]rune(p.Description)[:70]) + "…"
 				}
 				productCache.Store(p.ID, p)
 			}

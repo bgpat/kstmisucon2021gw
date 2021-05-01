@@ -8,12 +8,13 @@ var productCache sync.Map
 
 // Product Model
 type Product struct {
-	ID          int
-	Name        string
-	Description string
-	ImagePath   string
-	Price       int
-	CreatedAt   string
+	ID               int
+	Name             string
+	Description      string
+	ShortDescription string
+	ImagePath        string
+	Price            int
+	CreatedAt        string
 }
 
 // ProductWithComments Model
