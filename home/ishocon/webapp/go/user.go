@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strconv"
 	"sync"
@@ -66,8 +67,12 @@ func currentUser(ctx context.Context, session sessions.Session) User {
 	ctx, span := tracer.Start(ctx, "currentUser")
 	defer span.End()
 
-	uid := session.Get("uid").(int)
-	return getUser(ctx, uid)
+	v := session.Get("uid")
+	fmt.Println("session uid %#v\n", v)
+	if uid, ok := v.(int); ok {
+		return getUser(ctx, uid)
+	}
+	return User{}
 }
 
 // BuyingHistory : products which user had bought
