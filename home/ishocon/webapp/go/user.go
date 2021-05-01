@@ -44,6 +44,9 @@ func notAuthenticated(session sessions.Session) bool {
 }
 
 func getUser(uid int) User {
+	if v, ok := userCache.Load(uid); ok {
+		return v.(User)
+	}
 	u := User{}
 	r := db.QueryRow("SELECT * FROM users WHERE id = ? LIMIT 1", uid)
 	err := r.Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.LastLogin)
@@ -55,15 +58,8 @@ func getUser(uid int) User {
 }
 
 func currentUser(session sessions.Session) User {
-	uid := session.Get("uid")
-	u := User{}
-	r := db.QueryRow("SELECT * FROM users WHERE id = ? LIMIT 1", uid)
-	err := r.Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.LastLogin)
-	if err != nil {
-		return u
-	}
-
-	return u
+	uid := session.Get("uid").(int)
+	return getUser(uid)
 }
 
 // BuyingHistory : products which user had bought
@@ -126,5 +122,13 @@ func (u *User) CreateComment(pidStr string, content string) {
 }
 
 func (u *User) UpdateLastLogin() {
-	db.Exec("UPDATE users SET last_login = ? WHERE id = ?", time.Now(), u.ID)
+	now := time.Now()
+
+	if v, ok := userCache.Load(u.ID); ok {
+		u := v.(User)
+		u.LastLogin = now.Format("2006-01-02 15:04:05")
+		userCache.Store(u.ID, u)
+	}
+
+	db.Exec("UPDATE users SET last_login = ? WHERE id = ?", now, u.ID)
 }
