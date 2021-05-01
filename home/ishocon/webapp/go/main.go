@@ -38,7 +38,7 @@ func main() {
 	}
 	bsp := sdktrace.NewBatchSpanProcessor(
 		exporter,
-		sdktrace.WithMaxQueueSize(0x100000000),
+		sdktrace.WithMaxQueueSize(0x1000000),
 		sdktrace.WithBatchTimeout(2*time.Minute),
 		sdktrace.WithExportTimeout(2*time.Minute),
 	)
