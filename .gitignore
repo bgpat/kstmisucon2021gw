@@ -7,3 +7,7 @@
 /root/*
 !/root/.bashrc
 
+# /kataribe.toml
+/*
+!/kataribe.toml
+

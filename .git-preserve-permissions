@@ -56,6 +56,7 @@
 0664:1001:1001:home/ishocon/webapp/go/templates/mypage.tmpl
 0664:1001:1001:home/ishocon/webapp/go/templates/product.tmpl
 0644:1001:1001:home/ishocon/webapp/go/user.go
+0644:0:0:kataribe.toml
 0700:0:0:root
 0644:0:0:root/.bashrc
 0700:0:0:root/.ssh
