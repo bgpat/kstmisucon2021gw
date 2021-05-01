@@ -176,4 +176,14 @@ slow.log: /tmp/mysql-slow.sql
 .PHONY: rotate
 rotate:
 	rm /tmp/mysql-slow.sql
-	systemctl restart mysql webapp
+	systemctl restart mysql
+
+.PHONY: deploy
+deploy:
+	systemctl stop webapp
+	$(MAKE) /home/ishocon/webapp/go
+	systemctl start webapp
+	systemctl status webapp
+
+/home/ishocon/webapp/go/webapp: /home/ishocon/webapp/go/*.go
+	cd /home/ishocon/webapp/go && go build -o webapp .
