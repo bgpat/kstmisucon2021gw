@@ -166,7 +166,7 @@ func main() {
 		}
 
 		// shorten description
-		var sdProducts []Product
+		sdProducts := make([]Product, 0, len(products))
 		{
 			_, span := tracer.Start(ctx, "sdProducts")
 			for _, p := range products {
