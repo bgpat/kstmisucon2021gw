@@ -284,6 +284,7 @@ func main() {
 
 		{
 			productCache = make(map[int]*Product)
+			pages = make(map[int]int)
 			rows, err := db.Query("SELECT * FROM products ORDER BY id DESC")
 			if err != nil {
 				c.String(http.StatusInternalServerError, err.Error())
