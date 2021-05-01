@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strconv"
 	"sync"
@@ -68,7 +67,6 @@ func currentUser(ctx context.Context, session sessions.Session) User {
 	defer span.End()
 
 	v := session.Get("uid")
-	fmt.Println("session uid %#v\n", v)
 	if uid, ok := v.(int); ok {
 		return getUser(ctx, uid)
 	}

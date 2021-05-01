@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"sync"
 )
 
@@ -19,14 +20,15 @@ type Product struct {
 
 // ProductWithComments Model
 type ProductWithComments struct {
-	ID           int
-	Name         string
-	Description  string
-	ImagePath    string
-	Price        int
-	CreatedAt    string
-	CommentCount int
-	Comments     []CommentWriter
+	ID               int
+	Name             string
+	Description      string
+	ShortDescription string
+	ImagePath        string
+	Price            int
+	CreatedAt        string
+	CommentCount     int
+	Comments         []CommentWriter
 }
 
 // CommentWriter Model
@@ -50,10 +52,13 @@ func getProduct(pid int) Product {
 	return p
 }
 
-func getProductsWithCommentsAt(page int) []ProductWithComments {
+func getProductsWithCommentsAt(ctx context.Context, page int) []ProductWithComments {
+	ctx, span := tracer.Start(ctx, "getProductsWithCommentsAt")
+	defer span.End()
+
 	// select 50 products with offset page*50
 	products := []ProductWithComments{}
-	rows, err := db.Query("SELECT id FROM products ORDER BY id DESC LIMIT 50 OFFSET ?", page*50)
+	rows, err := db.QueryContext(ctx, "SELECT id FROM products ORDER BY id DESC LIMIT 50 OFFSET ?", page*50)
 	if err != nil {
 		return nil
 	}
@@ -64,7 +69,7 @@ func getProductsWithCommentsAt(page int) []ProductWithComments {
 		err = rows.Scan(&p.ID)
 
 		product := getProduct(p.ID)
-		p.Name, p.Description, p.ImagePath, p.Price, p.CreatedAt = product.Name, product.Description, product.ImagePath, product.Price, product.CreatedAt
+		p.Name, p.Description, p.ShortDescription, p.ImagePath, p.Price, p.CreatedAt = product.Name, product.Description, product.ShortDescription, product.ImagePath, product.Price, product.CreatedAt
 
 		var comments []Comment
 		if v, ok := commentCache.Load(p.ID); ok {

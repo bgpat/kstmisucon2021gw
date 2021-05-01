@@ -118,12 +118,13 @@ func main() {
 		if err != nil {
 			page = 0
 		}
-		products := getProductsWithCommentsAt(page)
+		products := getProductsWithCommentsAt(ctx, page)
 		// shorten description and comment
 		var sProducts []ProductWithComments
+		_, sSpan := tracer.Start(ctx, "sProducts")
 		for _, p := range products {
-			if utf8.RuneCountInString(p.Description) > 70 {
-				p.Description = string([]rune(p.Description)[:70]) + "…"
+			if p.ShortDescription != "" {
+				p.Description = p.ShortDescription
 			}
 
 			var newCW []CommentWriter
@@ -136,7 +137,10 @@ func main() {
 			p.Comments = newCW
 			sProducts = append(sProducts, p)
 		}
+		sSpan.End()
 
+		_, renderSpan := tracer.Start(ctx, "render")
+		defer renderSpan.End()
 		r.SetHTMLTemplate(template.Must(template.ParseFiles(layout, "templates/index.tmpl")))
 		c.HTML(http.StatusOK, "base", gin.H{
 			"CurrentUser": cUser,
