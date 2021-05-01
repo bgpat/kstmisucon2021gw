@@ -41,13 +41,16 @@ type CommentWriter struct {
 	Writer       string
 }
 
-func getProduct(pid int) Product {
+func getProduct(ctx context.Context, pid int) Product {
+	ctx, span := tracer.Start(ctx, "getProduct")
+	defer span.End()
+
 	if v, ok := productCache.Load(pid); ok {
 		return v.(Product)
 	}
 
 	p := Product{}
-	row := db.QueryRow("SELECT * FROM products WHERE id = ? LIMIT 1", pid)
+	row := db.QueryRowContext(ctx, "SELECT * FROM products WHERE id = ? LIMIT 1", pid)
 	err := row.Scan(&p.ID, &p.Name, &p.Description, &p.ImagePath, &p.Price, &p.CreatedAt)
 	if err != nil {
 		panic(err.Error())
@@ -82,7 +85,7 @@ func getProductsWithCommentsAt(ctx context.Context, page int) []ProductWithComme
 	products := []ProductWithComments{}
 	for _, id := range ids {
 		p := ProductWithComments{ID: id}
-		product := getProduct(id)
+		product := getProduct(ctx, id)
 		p.Name, p.Description, p.ShortDescription, p.ImagePath, p.Price, p.CreatedAt = product.Name, product.Description, product.ShortDescription, product.ImagePath, product.Price, product.CreatedAt
 
 		var comments []Comment

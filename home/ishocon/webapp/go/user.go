@@ -85,7 +85,7 @@ func (u *User) BuyingHistory(ctx context.Context) (products []Product) {
 	}
 	for _, h := range uh {
 		p := Product{}
-		p = getProduct(h.ProductID)
+		p = getProduct(ctx, h.ProductID)
 		fmt := "2006-01-02 15:04:05"
 		tmp, _ := time.Parse(fmt, h.CreatedAt)
 		p.CreatedAt = (tmp.Add(9 * time.Hour)).Format(fmt)

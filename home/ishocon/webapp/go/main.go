@@ -188,7 +188,7 @@ func main() {
 		defer span.End()
 
 		pid, _ := strconv.Atoi(c.Param("productId"))
-		product := getProduct(pid)
+		product := getProduct(ctx, pid)
 		comments := getComments(pid)
 
 		cUser := currentUser(ctx, sessions.Default(c))
