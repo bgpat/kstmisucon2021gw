@@ -109,7 +109,7 @@ func (u *User) BuyProduct(pid int) {
 		historyCache.Store(u.ID, h)
 	}
 
-	go db.Exec(
+	db.Exec(
 		"INSERT INTO histories (product_id, user_id, created_at) VALUES (?, ?, ?)",
 		pid, u.ID, now)
 }
@@ -130,7 +130,7 @@ func (u *User) CreateComment(pidStr string, content string) {
 		commentCache.Store(pid, cs)
 	}
 
-	go db.Exec(
+	db.Exec(
 		"INSERT INTO comments (product_id, user_id, content, created_at) VALUES (?, ?, ?, ?)",
 		pidStr, u.ID, content, now)
 }
@@ -144,5 +144,5 @@ func (u *User) UpdateLastLogin() {
 		userCache.Store(u.ID, user)
 	}
 
-	go db.Exec("UPDATE users SET last_login = ? WHERE id = ?", now, u.ID)
+	db.Exec("UPDATE users SET last_login = ? WHERE id = ?", now, u.ID)
 }
