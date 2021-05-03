@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"strconv"
 	"sync"
 	"time"
@@ -89,7 +88,6 @@ func (u *User) BuyProduct(ctx context.Context, pid int) {
 		p := getProduct(ctx, pid)
 		p.CreatedAt = now.Format("2006-01-02 15:04:05")
 		h = append([]Product{p}, h...)
-		log.Printf("%#v\n", h)
 		historyCache.Store(u.ID, h)
 	}
 

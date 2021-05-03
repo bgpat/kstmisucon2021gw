@@ -11,6 +11,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/XSAM/otelsql"
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
@@ -32,22 +33,34 @@ func getEnv(key, fallback string) string {
 var tracer = otel.Tracer("webapp")
 
 func main() {
-	exporter, err := jaeger.NewRawExporter(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint("http://localhost:14268/api/traces")))
-	if err != nil {
-		panic(err)
+	{
+		exporter, err := jaeger.NewRawExporter(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint("http://localhost:14268/api/traces")))
+		if err != nil {
+			panic(err)
+		}
+
+		var (
+			rate    = 1.0
+			options []sdktrace.BatchSpanProcessorOption
+		)
+		if os.Getenv("GIN_MODE") == "release" {
+			rate = 0.01
+			options = []sdktrace.BatchSpanProcessorOption{
+				sdktrace.WithMaxQueueSize(0x1000000),
+				sdktrace.WithBatchTimeout(2 * time.Minute),
+				sdktrace.WithExportTimeout(2 * time.Minute),
+			}
+		}
+
+		bsp := sdktrace.NewBatchSpanProcessor(exporter, options...)
+
+		tp := sdktrace.NewTracerProvider(
+			sdktrace.WithSpanProcessor(bsp),
+			sdktrace.WithSampler(sdktrace.TraceIDRatioBased(rate)),
+		)
+		defer func() { _ = tp.Shutdown(context.Background()) }()
+		otel.SetTracerProvider(tp)
 	}
-	bsp := sdktrace.NewBatchSpanProcessor(
-		exporter,
-		sdktrace.WithMaxQueueSize(0x1000000),
-		sdktrace.WithBatchTimeout(2*time.Minute),
-		sdktrace.WithExportTimeout(2*time.Minute),
-	)
-	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithSpanProcessor(bsp),
-		sdktrace.WithSampler(sdktrace.TraceIDRatioBased(0.01)),
-	)
-	defer func() { _ = tp.Shutdown(context.Background()) }()
-	otel.SetTracerProvider(tp)
 
 	// database setting
 	user := getEnv("ISHOCON1_DB_USER", "ishocon")
@@ -58,6 +71,7 @@ func main() {
 	db.SetMaxIdleConns(5)
 
 	r := gin.Default()
+	pprof.Register(r)
 	// load templates
 	r.Use(static.Serve("/css", static.LocalFile("public/css", true)))
 	r.Use(static.Serve("/images", static.LocalFile("public/images", true)))
@@ -364,5 +378,5 @@ func main() {
 		c.String(http.StatusOK, "Finish")
 	})
 
-	r.RunUnix("/tmp/webapp.sock")
+	r.Run(":80")
 }
