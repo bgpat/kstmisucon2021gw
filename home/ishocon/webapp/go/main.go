@@ -200,7 +200,7 @@ func main() {
 			if user.ID == cUser.ID {
 				ownerHTML = `<div class="panel-footer"><form method="POST" action="/comments/` + strconv.Itoa(p.ID) + `"><fieldset><div class="form-group"><input class="form-control" placeholder="Comment Here" name="content" value=""></div><input class="btn btn-success btn-block" type="submit" name="send_comment" value="コメントを送信" /></fieldset></form></div>`
 			}
-			productsHTML += `<div class="col-md-4"><div class="panel panel-default"><div class="panel-heading"><a href="/products/` + strconv.Itoa(p.ID) + `">` + p.Name + `</a></div><div class="panel-body"><a href="/products/` + strconv.Itoa(p.ID) + `"><img src="` + p.ImagePath + `" class="img-responsive" /></a><h4>価格</h4><p>` + strconv.Itoa(p.Price) + `円</p><h4>商品説明</h4><p>` + p.Description + `</p><h4>購入日時</h4><p>` + p.CreatedAt + `</p></div>` + owner + `</div></div>`
+			productsHTML += `<div class="col-md-4"><div class="panel panel-default"><div class="panel-heading"><a href="/products/` + strconv.Itoa(p.ID) + `">` + p.Name + `</a></div><div class="panel-body"><a href="/products/` + strconv.Itoa(p.ID) + `"><img src="` + p.ImagePath + `" class="img-responsive" /></a><h4>価格</h4><p>` + strconv.Itoa(p.Price) + `円</p><h4>商品説明</h4><p>` + p.Description + `</p><h4>購入日時</h4><p>` + p.CreatedAt + `</p></div>` + ownerHTML + `</div></div>`
 		}
 
 		_, renderSpan := tracer.Start(ctx, "render")
@@ -208,7 +208,7 @@ func main() {
 
 		var cUserHTML string
 		if cUser.ID > 0 {
-			cUserHtML = `<nav><ul class="nav nav-pills pull-right"><li role="presentation"><a href="/users/` + strconv.Itoa(cUser.ID) + `">` + cUser.Name + `さんの購入履歴</a></li><li role="presentation"><a href="/logout">Logout</a></li></ul></nav>`
+			cUserHTML = `<nav><ul class="nav nav-pills pull-right"><li role="presentation"><a href="/users/` + strconv.Itoa(cUser.ID) + `">` + cUser.Name + `さんの購入履歴</a></li><li role="presentation"><a href="/logout">Logout</a></li></ul></nav>`
 		} else {
 			cUserHTML = `<nav><ul class="nav nav-pills pull-right"><li role="presentation"><a href="/login">Login</a></li></ul></nav>`
 		}
