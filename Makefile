@@ -192,7 +192,7 @@ rotate:
 	systemctl restart mysql nginx
 
 .PHONY: deploy
-deploy:
+deploy: go1.16.3
 	systemctl stop webapp
 	rm -f /home/ishocon/webapp/go/webapp
 	$(MAKE) /home/ishocon/webapp/go/webapp
@@ -201,3 +201,10 @@ deploy:
 
 /home/ishocon/webapp/go/webapp: /home/ishocon/webapp/go/*.go
 	cd /home/ishocon/webapp/go && go build -o webapp .
+
+go1.16.3.linux-amd64.tar.gz:
+	wget https://golang.org/dl/go1.16.3.linux-amd64.tar.gz
+
+.PHONY: go1.16.3
+go1.16.3: go1.16.3.linux-amd64.tar.gz
+	rm -rf /usr/local/go && tar -C /usr/local -xzf go1.16.3.linux-amd64.tar.gz
