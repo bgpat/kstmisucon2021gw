@@ -132,45 +132,83 @@ func main() {
 		ctx, span := tracer.Start(c, "GET /")
 		defer span.End()
 
+		var buf bytes.Buffer
+		buf.Grow(0x10000)
+
+		io.WriteString(&buf, `<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html" charset="utf-8"><link rel="stylesheet" href="/css/bootstrap.min.css"><title>すごいECサイト</title></head><body><nav class="navbar navbar-inverse navbar-fixed-top"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">すごいECサイトで爆買いしよう!</a></div><div class="header clearfix">`)
+
 		cUser := currentUser(ctx, sessions.Default(c))
+		if cUser.ID > 0 {
+			io.WriteString(&buf, `<nav><ul class="nav nav-pills pull-right"><li role="presentation"><a href="/users/`)
+			io.WriteString(&buf, strconv.Itoa(cUser.ID))
+			io.WriteString(&buf, `">`)
+			io.WriteString(&buf, cUser.Name)
+			io.WriteString(&buf, `さんの購入履歴</a></li><li role="presentation"><a href="/logout">Logout</a></li></ul></nav>`)
+		} else {
+			io.WriteString(&buf, `<nav><ul class="nav nav-pills pull-right"><li role="presentation"><a href="/login">Login</a></li></ul></nav>`)
+		}
 
 		page, err := strconv.Atoi(c.Query("page"))
 		if err != nil {
 			page = 0
 		}
 
-		var sProducts []ProductWithComments
+		io.WriteString(&buf, `</div></nav><div class="jumbotron"><div class="container"><h1>今日は大安売りの日です！</h1></div></div><div class="container"> <div class="row">`)
+		var sProducts []byte
 		if v, ok := pageCache.Load(page); ok {
-			sProducts = v.([]ProductWithComments)
+			sProducts = v.([]byte)
 		} else {
+			pbuf := bytes.NewBuffer(sProducts)
+
 			products := getProductsWithCommentsAt(ctx, page)
 			// shorten description and comment
-			_, sSpan := tracer.Start(ctx, "sProducts")
 			for _, p := range products {
+				io.WriteString(pbuf, `<div class="col-md-4"><div class="panel panel-default"><div class="panel-heading"><a href="/products/`)
+				io.WriteString(pbuf, strconv.Itoa(p.ID))
+				io.WriteString(pbuf, `">`)
+				io.WriteString(pbuf, p.Name)
+				io.WriteString(pbuf, `</a></div><div class="panel-body"><a href="/products/`)
+				io.WriteString(pbuf, strconv.Itoa(p.ID))
+				io.WriteString(pbuf, `"><img src="`)
+				io.WriteString(pbuf, p.ImagePath)
+				io.WriteString(pbuf, `" class="img-responsive" /></a><h4>価格</h4><p>`)
+				io.WriteString(pbuf, strconv.Itoa(p.Price))
+				io.WriteString(pbuf, `円</p><h4>商品説明</h4><p>`)
 				if p.ShortDescription != "" {
-					p.Description = p.ShortDescription
+					io.WriteString(pbuf, p.ShortDescription)
+				} else {
+					io.WriteString(pbuf, p.Description)
+				}
+				io.WriteString(pbuf, `</p><h4>`)
+				io.WriteString(pbuf, strconv.Itoa(p.CommentCount))
+				io.WriteString(pbuf, `件のレビュー</h4><ul>`)
+
+				for _, c := range p.Comments {
+					io.WriteString(pbuf, `<li>`)
+					if c.ShortContent != "" {
+						io.WriteString(pbuf, c.ShortContent)
+					} else {
+						io.WriteString(pbuf, c.Content)
+					}
+					io.WriteString(pbuf, ` by `)
+					io.WriteString(pbuf, c.Writer)
+					io.WriteString(pbuf, `</li>`)
 				}
 
-				var newCW []CommentWriter
-				for _, c := range p.Comments {
-					if c.ShortContent != "" {
-						c.Content = c.ShortContent
-					}
-					newCW = append(newCW, c)
+				if cUser.ID > 0 {
+					io.WriteString(pbuf, `<div class="panel-footer"><form method="POST" action="/products/buy/`)
+					io.WriteString(pbuf, strconv.Itoa(p.ID))
+					io.WriteString(pbuf, `"><fieldset><input class="btn btn-success btn-block" type="submit" name="buy" value="購入" /></fieldset></form></div>`)
 				}
-				p.Comments = newCW
-				sProducts = append(sProducts, p)
 			}
 			pageCache.Store(page, sProducts)
-			sSpan.End()
 		}
+		buf.Write(sProducts)
+		io.WriteString(&buf, `</div></div></body></html>`)
 
 		_, renderSpan := tracer.Start(ctx, "render")
 		defer renderSpan.End()
-		c.HTML(http.StatusOK, "index.tmpl", gin.H{
-			"CurrentUser": cUser,
-			"Products":    sProducts,
-		})
+		c.DataFromReader(http.StatusOK, int64(buf.Len()), "text/html", &buf, nil)
 	})
 
 	// GET /users/:userId
