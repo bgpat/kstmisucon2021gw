@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
 	"net/http"
@@ -200,22 +199,12 @@ func main() {
 
 		_, renderSpan := tracer.Start(ctx, "render")
 		defer renderSpan.End()
-		var buf bytes.Buffer
-		mypageTmpl.Execute(&buf, map[string]interface{}{
+		c.HTML(http.StatusOK, "mypage.tmpl", gin.H{
 			"CurrentUser": cUser,
 			"User":        user,
 			"Products":    sdProducts,
 			"TotalPay":    totalPay,
 		})
-		c.Data(http.StatusOK, "text/html", buf.Bytes())
-		/*
-			c.HTML(http.StatusOK, "mypage.tmpl", gin.H{
-				"CurrentUser": cUser,
-				"User":        user,
-				"Products":    sdProducts,
-				"TotalPay":    totalPay,
-			})
-		*/
 	})
 
 	// GET /products/:productId
