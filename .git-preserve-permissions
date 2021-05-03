@@ -33,6 +33,7 @@
 0644:0:0:files/vimrc
 0755:1001:1001:home/ishocon
 0755:0:0:home
+0644:1001:1001:home/ishocon/.bashrc
 0644:0:0:home/ishocon/.bashrc.backup
 0775:1001:1001:home/ishocon/.init
 0644:0:0:home/ishocon/.init/init.sql

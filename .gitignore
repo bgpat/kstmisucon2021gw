@@ -27,3 +27,11 @@
 /home/ishocon/*
 !/home/ishocon/.bashrc.backup
 
+# /home/ishocon/.bashrc
+/*
+!/home
+/home/*
+!/home/ishocon
+/home/ishocon/*
+!/home/ishocon/.bashrc
+
