@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -188,34 +190,57 @@ func main() {
 			totalPay += p.Price
 		}
 
+		var buf bytes.Buffer
+		io.WriteString(&buf, `<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html" charset="utf-8"><link rel="stylesheet" href="/css/bootstrap.min.css"><title>すごいECサイト</title></head><body><nav class="navbar navbar-inverse navbar-fixed-top"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">すごいECサイトで爆買いしよう!</a></div><div class="header clearfix">`)
+		if cUser.ID > 0 {
+			io.WriteString(&buf, `<nav><ul class="nav nav-pills pull-right"><li role="presentation"><a href="/users/`+strconv.Itoa(cUser.ID)+`">`+cUser.Name+`さんの購入履歴</a></li><li role="presentation"><a href="/logout">Logout</a></li></ul></nav>`)
+		} else {
+			io.WriteString(&buf, `<nav><ul class="nav nav-pills pull-right"><li role="presentation"><a href="/login">Login</a></li></ul></nav>`)
+		}
+		io.WriteString(&buf, `</div></nav><div class="jumbotron"><div class="container"><h2>`)
+		io.WriteString(&buf, user.Name)
+		io.WriteString(&buf, ` さんの購入履歴</h2><h4>合計金額: `)
+		io.WriteString(&buf, strconv.Itoa(totalPay))
+		io.WriteString(&buf, `円</h4></div></div><div class="container"><div class="row">`)
+
 		// shorten description
-		sdProducts := make([]Product, 0, len(products))
 		var productsHTML string
 		for i, p := range products {
 			if p.ShortDescription != "" {
 				p.Description = p.ShortDescription
 			}
-			sdProducts = append(sdProducts, p)
 			if i >= 30 {
 				continue
 			}
-			var ownerHTML string
+			io.WriteString(&buf, `<div class="col-md-4"><div class="panel panel-default"><div class="panel-heading"><a href="/products/`)
+			io.WriteString(&buf, strconv.Itoa(p.ID))
+			io.WriteString(&buf, `">`)
+			io.WriteString(&buf, p.Name)
+			io.WriteString(&buf, `</a></div><div class="panel-body"><a href="/products/`)
+			io.WriteString(&buf, strconv.Itoa(p.ID))
+			io.WriteString(&buf, `"><img src="`)
+			io.WriteString(&buf, p.ImagePath)
+			io.WriteString(&buf, `" class="img-responsive" /></a><h4>価格</h4><p>`)
+			io.WriteString(&buf, strconv.Itoa(p.Price))
+			io.WriteString(&buf, `円</p><h4>商品説明</h4><p>`)
+			io.WriteString(&buf, p.Description)
+			io.WriteString(&buf, `</p><h4>購入日時</h4><p>`)
+			io.WriteString(&buf, p.CreatedAt)
+			io.WriteString(&buf, `</p></div>`)
 			if user.ID == cUser.ID {
-				ownerHTML = `<div class="panel-footer"><form method="POST" action="/comments/` + strconv.Itoa(p.ID) + `"><fieldset><div class="form-group"><input class="form-control" placeholder="Comment Here" name="content" value=""></div><input class="btn btn-success btn-block" type="submit" name="send_comment" value="コメントを送信" /></fieldset></form></div>`
+				io.WriteString(&buf, `<div class="panel-footer"><form method="POST" action="/comments/`)
+				io.WriteString(&buf, strconv.Itoa(p.ID))
+				io.WriteString(&buf, `"><fieldset><div class="form-group"><input class="form-control" placeholder="Comment Here" name="content" value=""></div><input class="btn btn-success btn-block" type="submit" name="send_comment" value="コメントを送信" /></fieldset></form></div>`)
 			}
-			productsHTML += `<div class="col-md-4"><div class="panel panel-default"><div class="panel-heading"><a href="/products/` + strconv.Itoa(p.ID) + `">` + p.Name + `</a></div><div class="panel-body"><a href="/products/` + strconv.Itoa(p.ID) + `"><img src="` + p.ImagePath + `" class="img-responsive" /></a><h4>価格</h4><p>` + strconv.Itoa(p.Price) + `円</p><h4>商品説明</h4><p>` + p.Description + `</p><h4>購入日時</h4><p>` + p.CreatedAt + `</p></div>` + ownerHTML + `</div></div>`
+			io.WriteString(&buf, `</div></div>`)
 		}
+		io.WriteString(&buf, productsHTML)
+		io.WriteString(&buf, `</div></div></body></html>`)
 
 		_, renderSpan := tracer.Start(ctx, "render")
 		defer renderSpan.End()
 
-		var cUserHTML string
-		if cUser.ID > 0 {
-			cUserHTML = `<nav><ul class="nav nav-pills pull-right"><li role="presentation"><a href="/users/` + strconv.Itoa(cUser.ID) + `">` + cUser.Name + `さんの購入履歴</a></li><li role="presentation"><a href="/logout">Logout</a></li></ul></nav>`
-		} else {
-			cUserHTML = `<nav><ul class="nav nav-pills pull-right"><li role="presentation"><a href="/login">Login</a></li></ul></nav>`
-		}
-		c.Data(http.StatusOK, "text/html", []byte(`<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html" charset="utf-8"><link rel="stylesheet" href="/css/bootstrap.min.css"><title>すごいECサイト</title></head><body><nav class="navbar navbar-inverse navbar-fixed-top"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">すごいECサイトで爆買いしよう!</a></div><div class="header clearfix">`+cUserHTML+`</div></nav><div class="jumbotron"><div class="container"><h2>`+user.Name+` さんの購入履歴</h2><h4>合計金額: `+strconv.Itoa(totalPay)+`円</h4></div></div><div class="container"><div class="row">`+productsHTML+`</div></div></body></html>`))
+		c.DataFromReader(http.StatusOK, int64(buf.Len()), "text/html", &buf, nil)
 		/*
 			("mypage.tmpl", gin.H{
 				"CurrentUser": cUser,
