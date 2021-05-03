@@ -191,7 +191,8 @@ func main() {
 		}
 
 		var buf bytes.Buffer
-		buf.Grow(0x1000)
+		buf.Grow(0x10000)
+
 		io.WriteString(&buf, `<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html" charset="utf-8"><link rel="stylesheet" href="/css/bootstrap.min.css"><title>すごいECサイト</title></head><body><nav class="navbar navbar-inverse navbar-fixed-top"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">すごいECサイトで爆買いしよう!</a></div><div class="header clearfix">`)
 		if cUser.ID > 0 {
 			io.WriteString(&buf, `<nav><ul class="nav nav-pills pull-right"><li role="presentation"><a href="/users/`+strconv.Itoa(cUser.ID)+`">`+cUser.Name+`さんの購入履歴</a></li><li role="presentation"><a href="/logout">Logout</a></li></ul></nav>`)
@@ -207,11 +208,8 @@ func main() {
 		// shorten description
 		var productsHTML string
 		for i, p := range products {
-			if p.ShortDescription != "" {
-				p.Description = p.ShortDescription
-			}
 			if i >= 30 {
-				continue
+				break
 			}
 			io.WriteString(&buf, `<div class="col-md-4"><div class="panel panel-default"><div class="panel-heading"><a href="/products/`)
 			io.WriteString(&buf, strconv.Itoa(p.ID))
@@ -224,7 +222,11 @@ func main() {
 			io.WriteString(&buf, `" class="img-responsive" /></a><h4>価格</h4><p>`)
 			io.WriteString(&buf, strconv.Itoa(p.Price))
 			io.WriteString(&buf, `円</p><h4>商品説明</h4><p>`)
-			io.WriteString(&buf, p.Description)
+			if p.ShortDescription != "" {
+				io.WriteString(&buf, p.ShortDescription)
+			} else {
+				io.WriteString(&buf, p.Description)
+			}
 			io.WriteString(&buf, `</p><h4>購入日時</h4><p>`)
 			io.WriteString(&buf, p.CreatedAt)
 			io.WriteString(&buf, `</p></div>`)
@@ -242,14 +244,6 @@ func main() {
 		defer renderSpan.End()
 
 		c.DataFromReader(http.StatusOK, int64(buf.Len()), "text/html", &buf, nil)
-		/*
-			("mypage.tmpl", gin.H{
-				"CurrentUser": cUser,
-				"User":        user,
-				"Products":    sdProducts,
-				"TotalPay":    totalPay,
-			})
-		*/
 	})
 
 	// GET /products/:productId
