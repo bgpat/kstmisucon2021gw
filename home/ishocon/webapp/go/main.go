@@ -191,11 +191,14 @@ func main() {
 		// shorten description
 		sdProducts := make([]Product, 0, len(products))
 		var productsHTML string
-		for _, p := range products {
+		for i, p := range products {
 			if p.ShortDescription != "" {
 				p.Description = p.ShortDescription
 			}
 			sdProducts = append(sdProducts, p)
+			if i >= 30 {
+				continue
+			}
 			var ownerHTML string
 			if user.ID == cUser.ID {
 				ownerHTML = `<div class="panel-footer"><form method="POST" action="/comments/` + strconv.Itoa(p.ID) + `"><fieldset><div class="form-group"><input class="form-control" placeholder="Comment Here" name="content" value=""></div><input class="btn btn-success btn-block" type="submit" name="send_comment" value="コメントを送信" /></fieldset></form></div>`
