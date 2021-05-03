@@ -190,37 +190,21 @@ func main() {
 
 		// shorten description
 		sdProducts := make([]Product, 0, len(products))
-		var productsHTML string
 		for _, p := range products {
 			if p.ShortDescription != "" {
 				p.Description = p.ShortDescription
 			}
 			sdProducts = append(sdProducts, p)
-			var ownerHTML string
-			if user.ID == cUser.ID {
-				ownerHTML = `<div class="panel-footer"><form method="POST" action="/comments/` + strconv.Itoa(p.ID) + `"><fieldset><div class="form-group"><input class="form-control" placeholder="Comment Here" name="content" value=""></div><input class="btn btn-success btn-block" type="submit" name="send_comment" value="コメントを送信" /></fieldset></form></div>`
-			}
-			productsHTML += `<div class="col-md-4"><div class="panel panel-default"><div class="panel-heading"><a href="/products/` + strconv.Itoa(p.ID) + `">` + p.Name + `</a></div><div class="panel-body"><a href="/products/` + strconv.Itoa(p.ID) + `"><img src="` + p.ImagePath + `" class="img-responsive" /></a><h4>価格</h4><p>` + strconv.Itoa(p.Price) + `円</p><h4>商品説明</h4><p>` + p.Description + `</p><h4>購入日時</h4><p>` + p.CreatedAt + `</p></div>` + owner + `</div></div>`
 		}
 
 		_, renderSpan := tracer.Start(ctx, "render")
 		defer renderSpan.End()
-
-		var cUserHTML string
-		if cUser.ID > 0 {
-			cUserHtML = `<nav><ul class="nav nav-pills pull-right"><li role="presentation"><a href="/users/` + strconv.Itoa(cUser.ID) + `">` + cUser.Name + `さんの購入履歴</a></li><li role="presentation"><a href="/logout">Logout</a></li></ul></nav>`
-		} else {
-			cUserHTML = `<nav><ul class="nav nav-pills pull-right"><li role="presentation"><a href="/login">Login</a></li></ul></nav>`
-		}
-		c.Data(http.StatusOK, "text/html", []byte(`<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html" charset="utf-8"><link rel="stylesheet" href="/css/bootstrap.min.css"><title>すごいECサイト</title></head><body><nav class="navbar navbar-inverse navbar-fixed-top"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">すごいECサイトで爆買いしよう!</a></div><div class="header clearfix">`+cUserHTML+`</div></nav><div class="jumbotron"><div class="container"><h2>`+user.Name+` さんの購入履歴</h2><h4>合計金額: `+strconv.Itoa(totalPay)+`円</h4></div></div><div class="container"><div class="row">`+productsHTML+`</div></div></body></html>`))
-		/*
-			("mypage.tmpl", gin.H{
-				"CurrentUser": cUser,
-				"User":        user,
-				"Products":    sdProducts,
-				"TotalPay":    totalPay,
-			})
-		*/
+		c.HTML(http.StatusOK, "mypage.tmpl", gin.H{
+			"CurrentUser": cUser,
+			"User":        user,
+			"Products":    sdProducts,
+			"TotalPay":    totalPay,
+		})
 	})
 
 	// GET /products/:productId
