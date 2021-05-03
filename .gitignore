@@ -19,3 +19,11 @@
 /home/ishocon/*
 !/home/ishocon/benchmark_wrap.sh
 
+# /home/ishocon/.bashrc.backup
+/*
+!/home
+/home/*
+!/home/ishocon
+/home/ishocon/*
+!/home/ishocon/.bashrc.backup
+
