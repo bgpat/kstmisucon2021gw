@@ -40,9 +40,6 @@ func notAuthenticated(session sessions.Session) bool {
 }
 
 func getUser(ctx context.Context, uid int) User {
-	ctx, span := tracer.Start(ctx, "getUser")
-	defer span.End()
-
 	if v, ok := userCache.Load(uid); ok {
 		return v.(User)
 	}
@@ -58,9 +55,6 @@ func getUser(ctx context.Context, uid int) User {
 }
 
 func currentUser(ctx context.Context, session sessions.Session) User {
-	ctx, span := tracer.Start(ctx, "currentUser")
-	defer span.End()
-
 	v := session.Get("uid")
 	if uid, ok := v.(int); ok {
 		return getUser(ctx, uid)
@@ -69,10 +63,7 @@ func currentUser(ctx context.Context, session sessions.Session) User {
 }
 
 // BuyingHistory : products which user had bought
-func (u *User) BuyingHistory(pctx context.Context) (products []Product) {
-	_, span := tracer.Start(pctx, "BuyingHistory")
-	defer span.End()
-
+func (u *User) BuyingHistory(ctx context.Context) (products []Product) {
 	if v, ok := historyCache.Load(u.ID); ok {
 		products = v.([]Product)
 	}

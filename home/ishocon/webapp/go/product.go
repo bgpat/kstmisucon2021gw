@@ -36,10 +36,7 @@ type CommentWriter struct {
 	Writer       string
 }
 
-func getProduct(pctx context.Context, pid int) Product {
-	ctx, span := tracer.Start(pctx, "getProduct")
-	defer span.End()
-
+func getProduct(ctx context.Context, pid int) Product {
 	if p, ok := productCache[pid]; ok {
 		return *p
 	}
@@ -54,10 +51,7 @@ func getProduct(pctx context.Context, pid int) Product {
 	return p
 }
 
-func getProductsWithCommentsAt(pctx context.Context, page int) []ProductWithComments {
-	ctx, span := tracer.Start(pctx, "getProductsWithCommentsAt")
-	defer span.End()
-
+func getProductsWithCommentsAt(ctx context.Context, page int) []ProductWithComments {
 	// select 50 products with offset page*50
 	var ids []int
 	if v, ok := productPageCache.Load(page); ok {

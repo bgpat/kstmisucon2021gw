@@ -2,25 +2,19 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"database/sql"
 	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"sync"
-	"time"
 	"unicode/utf8"
 
-	"github.com/XSAM/otelsql"
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/trace/jaeger"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
 var db *sql.DB
@@ -32,44 +26,12 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
-var tracer = otel.Tracer("webapp")
-
 func main() {
-	{
-		exporter, err := jaeger.NewRawExporter(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint("http://localhost:14268/api/traces")))
-		if err != nil {
-			panic(err)
-		}
-
-		var (
-			rate    = 1.0
-			options []sdktrace.BatchSpanProcessorOption
-		)
-		if os.Getenv("GIN_MODE") == "release" {
-			rate = 0.01
-			options = []sdktrace.BatchSpanProcessorOption{
-				sdktrace.WithMaxQueueSize(0x1000000),
-				sdktrace.WithBatchTimeout(2 * time.Minute),
-				sdktrace.WithExportTimeout(2 * time.Minute),
-			}
-		}
-
-		bsp := sdktrace.NewBatchSpanProcessor(exporter, options...)
-
-		tp := sdktrace.NewTracerProvider(
-			sdktrace.WithSpanProcessor(bsp),
-			sdktrace.WithSampler(sdktrace.TraceIDRatioBased(rate)),
-		)
-		defer func() { _ = tp.Shutdown(context.Background()) }()
-		otel.SetTracerProvider(tp)
-	}
-
 	// database setting
 	user := getEnv("ISHOCON1_DB_USER", "ishocon")
 	pass := getEnv("ISHOCON1_DB_PASSWORD", "ishocon")
 	dbname := getEnv("ISHOCON1_DB_NAME", "ishocon1")
-	driver, _ := otelsql.Register("mysql", "mysql")
-	db, _ = sql.Open(driver, user+":"+pass+"@/"+dbname)
+	db, _ = sql.Open("mysql", user+":"+pass+"@/"+dbname)
 	db.SetMaxIdleConns(5)
 
 	r := gin.Default()
@@ -129,15 +91,12 @@ func main() {
 
 	// GET /
 	r.GET("/", func(c *gin.Context) {
-		ctx, span := tracer.Start(c, "GET /")
-		defer span.End()
-
 		var buf bytes.Buffer
 		buf.Grow(0x10000)
 
 		io.WriteString(&buf, `<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html" charset="utf-8"><link rel="stylesheet" href="/css/bootstrap.min.css"><title>すごいECサイト</title></head><body><nav class="navbar navbar-inverse navbar-fixed-top"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">すごいECサイトで爆買いしよう!</a></div><div class="header clearfix">`)
 
-		cUser := currentUser(ctx, sessions.Default(c))
+		cUser := currentUser(c, sessions.Default(c))
 		if cUser.ID > 0 {
 			io.WriteString(&buf, `<nav><ul class="nav nav-pills pull-right"><li role="presentation"><a href="/users/`)
 			io.WriteString(&buf, strconv.Itoa(cUser.ID))
@@ -159,7 +118,7 @@ func main() {
 		} else {
 			var pbuf bytes.Buffer
 
-			products := getProductsWithCommentsAt(ctx, page)
+			products := getProductsWithCommentsAt(c, page)
 			// shorten description and comment
 			for _, p := range products {
 				pid := strconv.Itoa(p.ID)
@@ -210,22 +169,17 @@ func main() {
 		}
 		io.WriteString(&buf, `</div></div></body></html>`)
 
-		_, renderSpan := tracer.Start(ctx, "render")
-		defer renderSpan.End()
 		c.DataFromReader(http.StatusOK, int64(buf.Len()), "text/html", &buf, nil)
 	})
 
 	// GET /users/:userId
 	r.GET("/users/:userId", func(c *gin.Context) {
-		ctx, span := tracer.Start(c, "GET /users/:userId")
-		defer span.End()
-
-		cUser := currentUser(ctx, sessions.Default(c))
+		cUser := currentUser(c, sessions.Default(c))
 
 		uid, _ := strconv.Atoi(c.Param("userId"))
-		user := getUser(ctx, uid)
+		user := getUser(c, uid)
 
-		products := user.BuyingHistory(ctx)
+		products := user.BuyingHistory(c)
 
 		var totalPay int
 		for _, p := range products {
@@ -282,22 +236,16 @@ func main() {
 		io.WriteString(&buf, productsHTML)
 		io.WriteString(&buf, `</div></div></body></html>`)
 
-		_, renderSpan := tracer.Start(ctx, "render")
-		defer renderSpan.End()
-
 		c.DataFromReader(http.StatusOK, int64(buf.Len()), "text/html", &buf, nil)
 	})
 
 	// GET /products/:productId
 	r.GET("/products/:productId", func(c *gin.Context) {
-		ctx, span := tracer.Start(c, "GET /products/:productId")
-		defer span.End()
-
 		pid, _ := strconv.Atoi(c.Param("productId"))
-		product := getProduct(ctx, pid)
+		product := getProduct(c, pid)
 		comments := getComments(pid)
 
-		cUser := currentUser(ctx, sessions.Default(c))
+		cUser := currentUser(c, sessions.Default(c))
 		bought := product.isBought(cUser.ID)
 
 		c.HTML(http.StatusOK, "product.tmpl", gin.H{
@@ -310,9 +258,6 @@ func main() {
 
 	// POST /products/buy/:productId
 	r.POST("/products/buy/:productId", func(c *gin.Context) {
-		ctx, span := tracer.Start(c, "POST /products/buy/:productId")
-		defer span.End()
-
 		// need authenticated
 		if notAuthenticated(sessions.Default(c)) {
 			c.HTML(http.StatusForbidden, "login.tmpl", gin.H{
@@ -320,12 +265,12 @@ func main() {
 			})
 		} else {
 			// buy product
-			cUser := currentUser(ctx, sessions.Default(c))
+			cUser := currentUser(c, sessions.Default(c))
 			pid, err := strconv.Atoi(c.Param("productId"))
 			if err != nil {
 				panic(err.Error())
 			}
-			cUser.BuyProduct(ctx, pid)
+			cUser.BuyProduct(c, pid)
 
 			// redirect to user page
 			c.Redirect(http.StatusFound, "/users/"+strconv.Itoa(cUser.ID))
@@ -334,9 +279,6 @@ func main() {
 
 	// POST /comments/:productId
 	r.POST("/comments/:productId", func(c *gin.Context) {
-		ctx, span := tracer.Start(c, "POST /comments/:productId")
-		defer span.End()
-
 		// need authenticated
 		if notAuthenticated(sessions.Default(c)) {
 			c.HTML(http.StatusForbidden, "login.tmpl", gin.H{
@@ -344,7 +286,7 @@ func main() {
 			})
 		} else {
 			// create comment
-			cUser := currentUser(ctx, sessions.Default(c))
+			cUser := currentUser(c, sessions.Default(c))
 			cUser.CreateComment(c.Param("productId"), c.PostForm("content"))
 
 			// redirect to user page
