@@ -107,7 +107,6 @@ func getProductsWithCommentsAt(ctx context.Context, page int) []ProductWithComme
 }
 
 func (p *Product) isBought(uid int) bool {
-	historyCacheMu.RLock()
 	if v, ok := historyCache.Load(uid); ok {
 		for _, h := range v.([]Product) {
 			if h.ID == p.ID {
@@ -115,6 +114,5 @@ func (p *Product) isBought(uid int) bool {
 			}
 		}
 	}
-	historyCacheMu.RUnlock()
 	return false
 }
