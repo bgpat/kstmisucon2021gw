@@ -199,6 +199,8 @@ func main() {
 					io.WriteString(&pbuf, strconv.Itoa(p.ID))
 					io.WriteString(&pbuf, `"><fieldset><input class="btn btn-success btn-block" type="submit" name="buy" value="購入" /></fieldset></form></div>`)
 				}
+
+				io.WriteString(&pbuf, `</div></div>`)
 			}
 			b := pbuf.Bytes()
 			buf.Write(b)
