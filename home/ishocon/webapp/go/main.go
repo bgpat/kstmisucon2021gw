@@ -162,12 +162,13 @@ func main() {
 			products := getProductsWithCommentsAt(ctx, page)
 			// shorten description and comment
 			for _, p := range products {
+				pid := strconv.Itoa(p.ID)
 				io.WriteString(&pbuf, `<div class="col-md-4"><div class="panel panel-default"><div class="panel-heading"><a href="/products/`)
-				io.WriteString(&pbuf, strconv.Itoa(p.ID))
+				io.WriteString(&pbuf, pid)
 				io.WriteString(&pbuf, `">`)
 				io.WriteString(&pbuf, p.Name)
 				io.WriteString(&pbuf, `</a></div><div class="panel-body"><a href="/products/`)
-				io.WriteString(&pbuf, strconv.Itoa(p.ID))
+				io.WriteString(&pbuf, pid)
 				io.WriteString(&pbuf, `"><img src="`)
 				io.WriteString(&pbuf, p.ImagePath)
 				io.WriteString(&pbuf, `" class="img-responsive" /></a><h4>価格</h4><p>`)
@@ -197,7 +198,7 @@ func main() {
 
 				if cUser.ID > 0 {
 					io.WriteString(&pbuf, `<div class="panel-footer"><form method="POST" action="/products/buy/`)
-					io.WriteString(&pbuf, strconv.Itoa(p.ID))
+					io.WriteString(&pbuf, pid)
 					io.WriteString(&pbuf, `"><fieldset><input class="btn btn-success btn-block" type="submit" name="buy" value="購入" /></fieldset></form></div>`)
 				}
 
