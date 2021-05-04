@@ -193,6 +193,7 @@ func main() {
 					io.WriteString(&pbuf, c.Writer)
 					io.WriteString(&pbuf, `</li>`)
 				}
+				io.WriteString(&pbuf, `</ul></div>`)
 
 				if cUser.ID > 0 {
 					io.WriteString(&pbuf, `<div class="panel-footer"><form method="POST" action="/products/buy/`)
