@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	userCache    sync.Map
-	historyCache sync.Map
+	userCache      sync.Map
+	historyCache   sync.Map
+	historyCacheMu sync.RWMutex
 )
 
 // User model
@@ -64,9 +65,11 @@ func currentUser(ctx context.Context, session sessions.Session) User {
 
 // BuyingHistory : products which user had bought
 func (u *User) BuyingHistory(ctx context.Context) (products []Product) {
+	historyCacheMu.RLock()
 	if v, ok := historyCache.Load(u.ID); ok {
 		products = v.([]Product)
 	}
+	historyCacheMu.RUnlock()
 	return
 }
 
@@ -75,6 +78,7 @@ func (u *User) BuyProduct(ctx context.Context, pid int) {
 	now := time.Now()
 
 	p := getProduct(ctx, pid)
+	historyCacheMu.Lock()
 	if v, ok := historyCache.Load(u.ID); ok {
 		h := v.([]Product)
 		p.CreatedAt = now.Format("2006-01-02 15:04:05")
@@ -83,6 +87,7 @@ func (u *User) BuyProduct(ctx context.Context, pid int) {
 	} else {
 		historyCache.Store(u.ID, []Product{p})
 	}
+	historyCacheMu.Unlock()
 
 	go db.Exec(
 		"INSERT INTO histories (product_id, user_id, created_at) VALUES (?, ?, ?)",
