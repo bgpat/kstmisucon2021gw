@@ -82,7 +82,7 @@ func (u *User) BuyProduct(ctx context.Context, pid int) {
 		historyCache.Store(u.ID, h)
 	}
 
-	go db.Exec(
+	db.Exec(
 		"INSERT INTO histories (product_id, user_id, created_at) VALUES (?, ?, ?)",
 		pid, u.ID, now)
 }
