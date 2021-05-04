@@ -74,12 +74,14 @@ func (u *User) BuyingHistory(ctx context.Context) (products []Product) {
 func (u *User) BuyProduct(ctx context.Context, pid int) {
 	now := time.Now()
 
+	p := getProduct(ctx, pid)
 	if v, ok := historyCache.Load(u.ID); ok {
 		h := v.([]Product)
-		p := getProduct(ctx, pid)
 		p.CreatedAt = now.Format("2006-01-02 15:04:05")
 		h = append([]Product{p}, h...)
 		historyCache.Store(u.ID, h)
+	} else {
+		historyCache.Store(u.ID, []Product{p})
 	}
 
 	go db.Exec(
