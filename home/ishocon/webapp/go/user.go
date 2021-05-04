@@ -87,11 +87,13 @@ func (u *User) BuyProduct(ctx context.Context, pid int) {
 	} else {
 		historyCache.Store(u.ID, []Product{p})
 	}
-	historyCacheMu.Unlock()
 
-	go db.Exec(
-		"INSERT INTO histories (product_id, user_id, created_at) VALUES (?, ?, ?)",
-		pid, u.ID, now)
+	go func() {
+		db.Exec(
+			"INSERT INTO histories (product_id, user_id, created_at) VALUES (?, ?, ?)",
+			pid, u.ID, now)
+		historyCacheMu.Unlock()
+	}()
 }
 
 // CreateComment : create comment to the product
