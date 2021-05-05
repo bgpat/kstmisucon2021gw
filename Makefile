@@ -193,7 +193,7 @@ kataribe.log: /var/log/nginx/access.log kataribe.toml /usr/local/bin/kataribe
 
 .PHONY: rotate
 rotate:
-	rm -f /tmp/mysql-slow.sql /var/log/nginx/access.log
+	rm -f /tmp/mysql-slow.sql /var/log/nginx/access.log /var/log/nginx/error.log
 	systemctl restart mysql nginx
 
 .PHONY: deploy
