@@ -134,8 +134,17 @@ func getIndex(c *gin.Context) {
 
 func getUserHistory(c *gin.Context) {
 	cUser := currentUser(c, sessions.Default(c))
-
 	uid, _ := strconv.Atoi(c.Param("userId"))
+
+	// cache only mypage
+	if cUser.ID == uid {
+		if v, ok := historyHTMLCache.Load(uid); ok {
+			buf := v.(*bytes.Buffer)
+			c.DataFromReader(http.StatusOK, int64(buf.Len()), "text/html", buf, nil)
+			return
+		}
+	}
+
 	user := getUser(c, uid)
 
 	products := user.BuyingHistory(c)
@@ -196,6 +205,9 @@ func getUserHistory(c *gin.Context) {
 	io.WriteString(&buf, `</div></div></body></html>`)
 
 	c.DataFromReader(http.StatusOK, int64(buf.Len()), "text/html", &buf, nil)
+	if cUser.ID == uid {
+		historyHTMLCache.Store(uid, &buf)
+	}
 }
 
 func getProductPage(c *gin.Context) {

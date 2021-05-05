@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	userCache    sync.Map
-	historyCache sync.Map
+	userCache        sync.Map
+	historyCache     sync.Map
+	historyHTMLCache sync.Map
 )
 
 // User model
@@ -81,6 +82,8 @@ func (u *User) BuyProduct(ctx context.Context, pid int) {
 		h = append([]*Product{&p}, h...)
 		historyCache.Store(u.ID, h)
 	}
+
+	historyHTMLCache.Delete(u.ID)
 
 	db.Exec(
 		"INSERT INTO histories (product_id, user_id, created_at) VALUES (?, ?, ?)",
