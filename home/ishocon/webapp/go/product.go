@@ -9,6 +9,7 @@ var (
 	productCache     map[int]*Product
 	productPageCache sync.Map
 	pages            map[int]int
+	indexHTMLCache   sync.Map
 )
 
 // Product Model

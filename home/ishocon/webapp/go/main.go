@@ -186,6 +186,9 @@ func main() {
 			}
 		}
 
+		indexHTMLCache = sync.Map{}
+		historyHTMLCache = sync.Map{}
+
 		c.String(http.StatusOK, "Finish")
 	})
 

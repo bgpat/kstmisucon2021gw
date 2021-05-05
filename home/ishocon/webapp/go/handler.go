@@ -51,12 +51,29 @@ func getLogout(c *gin.Context) {
 }
 
 func getIndex(c *gin.Context) {
+	cUser := currentUser(c, sessions.Default(c))
+
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil {
+		page = 0
+	}
+
+	var ihc map[int][]byte
+	if v, ok := indexHTMLCache.Load(page); ok {
+		ihc = v.(map[int][]byte)
+		if buf, ok := ihc[cUser.ID]; ok {
+			c.Data(http.StatusOK, "text/html", buf)
+			return
+		}
+	} else {
+		ihc = make(map[int][]byte)
+	}
+
 	var buf bytes.Buffer
 	buf.Grow(0x10000)
 
 	io.WriteString(&buf, `<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html" charset="utf-8"><link rel="stylesheet" href="/css/bootstrap.min.css"><title>すごいECサイト</title></head><body><nav class="navbar navbar-inverse navbar-fixed-top"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">すごいECサイトで爆買いしよう!</a></div><div class="header clearfix">`)
 
-	cUser := currentUser(c, sessions.Default(c))
 	if cUser.ID > 0 {
 		io.WriteString(&buf, `<nav><ul class="nav nav-pills pull-right"><li role="presentation"><a href="/users/`)
 		io.WriteString(&buf, strconv.Itoa(cUser.ID))
@@ -65,11 +82,6 @@ func getIndex(c *gin.Context) {
 		io.WriteString(&buf, `さんの購入履歴</a></li><li role="presentation"><a href="/logout">Logout</a></li></ul></nav>`)
 	} else {
 		io.WriteString(&buf, `<nav><ul class="nav nav-pills pull-right"><li role="presentation"><a href="/login">Login</a></li></ul></nav>`)
-	}
-
-	page, err := strconv.Atoi(c.Query("page"))
-	if err != nil {
-		page = 0
 	}
 
 	io.WriteString(&buf, `</div></nav><div class="jumbotron"><div class="container"><h1>今日は大安売りの日です！</h1></div></div><div class="container"><div class="row">`)
@@ -129,7 +141,13 @@ func getIndex(c *gin.Context) {
 	}
 	io.WriteString(&buf, `</div></div></body></html>`)
 
-	c.DataFromReader(http.StatusOK, int64(buf.Len()), "text/html", &buf, nil)
+	bb := buf.Bytes()
+	c.Data(http.StatusOK, "text/html", bb)
+
+	{
+		ihc[cUser.ID] = bb
+		indexHTMLCache.Store(page, ihc)
+	}
 }
 
 func getUserHistory(c *gin.Context) {
