@@ -136,11 +136,11 @@ func getUserHistory(c *gin.Context) {
 	cUser := currentUser(c, sessions.Default(c))
 	uid, _ := strconv.Atoi(c.Param("userId"))
 
-	var hhc map[int]*bytes.Buffer
+	var hhc map[int][]byte
 	if v, ok := historyHTMLCache.Load(uid); ok {
-		hhc = v.(map[int]*bytes.Buffer)
+		hhc = v.(map[int][]byte)
 		if buf, ok := hhc[cUser.ID]; ok {
-			c.DataFromReader(http.StatusOK, int64(buf.Len()), "text/html", buf, nil)
+			c.Data(http.StatusOK, "text/html", buf)
 			return
 		}
 	}
@@ -208,9 +208,9 @@ func getUserHistory(c *gin.Context) {
 
 	{
 		if hhc == nil {
-			hhc = make(map[int]*bytes.Buffer)
+			hhc = make(map[int][]byte)
 		}
-		hhc[cUser.ID] = &buf
+		hhc[cUser.ID] = buf.Bytes()
 		historyHTMLCache.Store(uid, hhc)
 	}
 }
