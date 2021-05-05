@@ -150,11 +150,11 @@ func main() {
 				}
 				p := getProduct(c, h.ID)
 				p.CreatedAt = h.CreatedAt
-				var uh []Product
+				var uh []*Product
 				if v, ok := historyCache.Load(uid); ok {
-					uh = v.([]Product)
+					uh = v.([]*Product)
 				}
-				uh = append(uh, p)
+				uh = append(uh, &p)
 				historyCache.Store(uid, uh)
 			}
 		}

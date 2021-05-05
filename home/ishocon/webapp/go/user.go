@@ -63,9 +63,9 @@ func currentUser(ctx context.Context, session sessions.Session) User {
 }
 
 // BuyingHistory : products which user had bought
-func (u *User) BuyingHistory(ctx context.Context) (products []Product) {
+func (u *User) BuyingHistory(ctx context.Context) (products []*Product) {
 	if v, ok := historyCache.Load(u.ID); ok {
-		products = v.([]Product)
+		products = v.([]*Product)
 	}
 	return
 }
@@ -75,10 +75,10 @@ func (u *User) BuyProduct(ctx context.Context, pid int) {
 	now := time.Now()
 
 	if v, ok := historyCache.Load(u.ID); ok {
-		h := v.([]Product)
+		h := v.([]*Product)
 		p := getProduct(ctx, pid)
 		p.CreatedAt = now.Format("2006-01-02 15:04:05")
-		h = append([]Product{p}, h...)
+		h = append([]*Product{&p}, h...)
 		historyCache.Store(u.ID, h)
 	}
 
