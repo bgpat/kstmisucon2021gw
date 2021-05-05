@@ -30,7 +30,7 @@ func main() {
 	pass := getEnv("ISHOCON1_DB_PASSWORD", "ishocon")
 	dbname := getEnv("ISHOCON1_DB_NAME", "ishocon1")
 	db, _ = sql.Open("mysql", user+":"+pass+"@/"+dbname)
-	db.SetMaxIdleConns(5)
+	db.SetMaxIdleConns(100)
 
 	r := gin.Default()
 	pprof.Register(r)
