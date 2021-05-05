@@ -26,6 +26,7 @@
 0644:0:0:files/grafana/dashboards/summary.json
 0644:0:0:files/grafana/datasources.yml
 0755:0:0:files/hosts
+0644:0:0:files/hosts/ip-172-16-10-112
 0644:0:0:files/hosts/ip-172-16-10-251
 0644:0:0:files/hosts/ip-172-16-10-47
 0755:0:0:files/pubkey
