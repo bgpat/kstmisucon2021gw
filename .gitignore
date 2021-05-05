@@ -43,3 +43,9 @@
 /home/ishocon/*
 !/home/ishocon/db_init.sh
 
+# /etc/sysctl.conf
+/*
+!/etc
+/etc/*
+!/etc/sysctl.conf
+
