@@ -57,8 +57,12 @@ regexp = '^GET /users/\d+'
 name = "user"
 
 [[bundle]]
-regexp = '^GET /(\?page=\d+)?'
+regexp = '^GET / '
 name = "top"
+
+[[bundle]]
+regexp = '^GET /\?page=\d+'
+name = "top (with page)"
 
 [[bundle]]
 regexp = '^GET /images/'
@@ -75,3 +79,11 @@ name = "comment"
 [[bundle]]
 regexp = '^POST /products/buy/\d+'
 name = "buy"
+
+[[bundle]]
+regexp = '^GET /products/\d+'
+name = "product"
+
+[[bundle]]
+regexp = '^GET /debug/pprof'
+name = "(pprof)"

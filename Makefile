@@ -182,8 +182,13 @@ slow.log: /tmp/mysql-slow.sql
 	mysqldumpslow -s t $< > $@
 	cat $@
 
-kataribe.log: /var/log/nginx/access.log kataribe.toml
-	kataribe -f /kataribe.toml < $< > kataribe.log
+/usr/local/bin/kataribe:
+	wget -q -O /tmp/kataribe-v0.4.1_linux_amd64.zip https://github.com/matsuu/kataribe/releases/download/v0.4.1/kataribe-v0.4.1_linux_amd64.zip
+	unzip /tmp/kataribe-v0.4.1_linux_amd64.zip -d /usr/local/bin
+	rm -rf /tmp/kataribe-v0.4.1_linux_amd64.zip
+
+kataribe.log: /var/log/nginx/access.log kataribe.toml /usr/local/bin/kataribe
+	/usr/local/bin/kataribe -f /kataribe.toml < $< > kataribe.log
 	cat $@
 
 .PHONY: rotate
