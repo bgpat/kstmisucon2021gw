@@ -1,4 +1,5 @@
 [Service]
+Environment=PORT=80
 Environment=GIN_MODE=release
 EnvironmentFile=/home/ishocon/.bashrc
 WorkingDirectory=/home/ishocon/webapp/go

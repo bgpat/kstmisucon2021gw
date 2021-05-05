@@ -192,5 +192,6 @@ func main() {
 		c.String(http.StatusOK, "Finish")
 	})
 
-	r.RunUnix("/tmp/webapp.sock")
+	go r.RunUnix("/tmp/webapp.sock")
+	r.Run(":" + os.Getenv("PORT"))
 }
