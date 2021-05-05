@@ -29,12 +29,13 @@
 0644:0:0:files/hosts/ip-172-16-10-251
 0644:0:0:files/hosts/ip-172-16-10-47
 0755:0:0:files/pubkey
+0644:0:0:files/pubkey/ip-172-16-10-112
 0644:0:0:files/pubkey/ip-172-16-10-251
 0644:0:0:files/pubkey/ip-172-16-10-47
 0644:0:0:files/vimrc
 0755:1001:1001:home/ishocon
 0755:0:0:home
-0644:1001:1001:home/ishocon/.bashrc
+0644:0:0:home/ishocon/.bashrc
 0644:0:0:home/ishocon/.bashrc.backup
 0775:1001:1001:home/ishocon/.init
 0644:0:0:home/ishocon/.init/init.sql
@@ -45,6 +46,7 @@
 0644:0:0:home/ishocon/webapp/go/comment.go
 0644:0:0:home/ishocon/webapp/go/go.mod
 0644:0:0:home/ishocon/webapp/go/go.sum
+0644:0:0:home/ishocon/webapp/go/handler.go
 0644:0:0:home/ishocon/webapp/go/main.go
 0644:0:0:home/ishocon/webapp/go/product.go
 0775:1001:1001:home/ishocon/webapp/go/public/css
