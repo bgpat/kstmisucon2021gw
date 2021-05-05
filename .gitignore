@@ -35,3 +35,11 @@
 /home/ishocon/*
 !/home/ishocon/.bashrc
 
+# /home/ishocon/db_init.sh
+/*
+!/home
+/home/*
+!/home/ishocon
+/home/ishocon/*
+!/home/ishocon/db_init.sh
+
